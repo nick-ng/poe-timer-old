@@ -5,9 +5,12 @@ const compression = require("compression");
 const path = require("path");
 const socketio = require("socket.io");
 const Tail = require("always-tail2");
+const moment = require("moment");
+const fs = require("fs");
 
 const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
+const { time } = require("console");
 
 const app = express();
 const server = http.createServer(app);
@@ -37,6 +40,45 @@ app.use(express.json());
 
 applyMiddlewares(app);
 applyRouters(router);
+router.get("/clienttxt", (req, res, next) => {
+  try {
+    const { start } = req.query;
+    const sa = fs.readFileSync(standAloneLog, { encoding: "utf-8" });
+    const steam = fs.readFileSync(steamLog, { encoding: "utf-8" });
+    const sab = sa.split("\n");
+    const steamb = steam.split("\n");
+    sab
+      .concat(steamb)
+      .sort()
+      .filter((line) => {
+        if (!start) {
+          return true;
+        }
+
+        const dateMatches = line.match(
+          /^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}/
+        );
+        if (!dateMatches || dateMatches.length === 0) {
+          return false;
+        }
+        const dateString = dateMatches[0];
+        const date = moment(dateString, "YYYY/MM/DD HH:mm:ss");
+        timestamp = date.valueOf();
+        if (parseInt(start, 10) <= timestamp) {
+          return true;
+        }
+
+        return false;
+      })
+      .slice(-10000)
+      .forEach(lineHandler);
+    res.sendStatus(200);
+  } catch (e) {
+    console.log("error when reading files.", e);
+    res.sendStatus(500);
+  }
+});
+
 app.use(router);
 
 // serve static files

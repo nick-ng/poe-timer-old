@@ -1,10 +1,6 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-let siteTitle = "Miniature Metropolises";
-
-if (process.env.NODE_ENV !== "production") {
-  siteTitle = `${siteTitle} - ${process.env.NODE_ENV || "dev"}`;
-}
+const siteTitle = "PoE Helper";
 
 module.exports = {
   mode: process.env.NODE_ENV || "production",

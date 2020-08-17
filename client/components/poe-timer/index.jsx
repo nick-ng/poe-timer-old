@@ -36,7 +36,7 @@ const PageColumns = styled.div`
   margin-top: 1em;
   display: grid;
   grid-template-columns: auto auto auto;
-  gap: 1em;
+  gap: 2em;
 `;
 
 const ThreeColumn = styled.div`
@@ -162,6 +162,7 @@ const PoeTimer = () => {
 
   const reloadEvents = (start = 0) => {
     setSplits([]);
+    setSplitsLevel([]);
     setAllEvents([]);
     fetch(`/clienttxt?start=${start}`);
   };

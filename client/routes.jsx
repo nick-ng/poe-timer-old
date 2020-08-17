@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Switch, Route as R } from "react-router-dom";
 import css from "./styles.css";
 
 import Nav from "./components/nav";
+import PoeTimer from "./components/poe-timer";
 
 export default function App() {
   return (
@@ -13,9 +14,7 @@ export default function App() {
         <div className={css.pageContent}>
           <Switch>
             <R path="/">
-              <div>
-                <h1>Miniature Metropolises</h1>
-              </div>
+              <PoeTimer />
             </R>
           </Switch>
         </div>

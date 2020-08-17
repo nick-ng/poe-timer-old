@@ -10,7 +10,6 @@ const fs = require("fs");
 
 const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
-const { time } = require("console");
 
 const app = express();
 const server = http.createServer(app);

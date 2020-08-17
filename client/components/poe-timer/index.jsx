@@ -1,13 +1,14 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
 import styled from "styled-components";
 import io from "socket.io-client";
+
+import { processLine, secondsToBiggerTime, DATE_FORMAT } from "./utils";
 
 const MILESTONE_SPLITS = "POE_MILESTONE_SPLITS";
 const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
 
-const DATE_FORMAT = "YYYY/MM/DD hh:mm a";
 const LEVEL_MILESTONES = [
   5,
   10,
@@ -59,86 +60,6 @@ const Right = styled.div`
   text-align: right;
 `;
 
-const getEvent = (line) => {
-  try {
-    if (line.includes("] : You have entered ")) {
-      const zone = line
-        .replace(/^.*] : You have entered /, "")
-        .replace(".", "");
-      return {
-        type: "enter",
-        data: zone,
-        details: zone,
-      };
-    }
-    if (line.includes(") is now level ")) {
-      const level = parseInt(line.replace(/^.*\) is now level /, ""), 0);
-      const player = line.replaceAll(/^.*] : | \(.*$/g, "");
-      return {
-        type: "level",
-        details: {
-          level,
-          player,
-        },
-        data: `${player}: ${level}`,
-      };
-    }
-  } catch (e) {
-    console.log("error when parsing event", e);
-  }
-
-  // console.log("un-interesting log", line);
-  return {
-    type: null,
-    data: null,
-  };
-};
-
-const processLine = (line) => {
-  if (!line) {
-    return {
-      timestamp: 0,
-      type: null,
-      data: null,
-    };
-  }
-
-  let timestamp = 0;
-  try {
-    const dateString = line.match(/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}/)[0];
-    const date = moment(dateString, "YYYY/MM/DD HH:mm:ss");
-    timestamp = date.valueOf();
-  } catch (e) {
-    console.log("error when getting timestamp.", e);
-    console.log(line);
-  }
-
-  const { type, data, details } = getEvent(
-    line.replace("\n", "").replace("\r", "")
-  );
-
-  return {
-    timestamp,
-    type,
-    data,
-    details,
-  };
-};
-
-const secondsToBiggerTime = (seconds) => {
-  const seconds0 = Math.round(seconds);
-  const hours = Math.floor(seconds0 / 3600);
-  const secondsA = seconds0 % 3600;
-  const minutes = Math.floor(secondsA / 60);
-  const secondsB = secondsA % 60;
-
-  return [
-    `${hours}`,
-    `${minutes}`.padStart(2, "0"),
-    `${secondsB}`.padStart(2, "0"),
-  ].join(":");
-};
-
 const PoeTimer = () => {
   const [allEvents, setAllEvents] = useState([]);
   const [newestEvent, setNewestEvent] = useState({
@@ -151,7 +72,6 @@ const PoeTimer = () => {
   const [msSplits, setMsSplits] = useState(
     JSON.parse(localStorage.getItem(MILESTONE_SPLITS) || "[]")
   );
-
   const [startTimestamp, setStartTimestamp] = useState(
     parseInt(localStorage.getItem(START_TIMESTAMP) || 0, 10)
   );
@@ -159,11 +79,13 @@ const PoeTimer = () => {
   const [playerName, setPlayerName] = useState(
     localStorage.getItem(PLAYER_NAME) || ""
   );
+  const [playerLevel, setPlayerLevel] = useState(1);
 
   const reloadEvents = (start = 0) => {
     setSplits([]);
     setSplitsLevel([]);
     setAllEvents([]);
+    setPlayerLevel(1);
     fetch(`/clienttxt?start=${start}`);
   };
 
@@ -200,8 +122,16 @@ const PoeTimer = () => {
     }
     const fullEvent = `${newestEvent.type}-${newestEvent.data}`;
     if (newestEvent.type === "enter") {
-      const fullSplits = splits.map((a) => `${a.type}-${a.data}`);
-      if (msSplits.includes(fullEvent) && !fullSplits.includes(fullEvent)) {
+      const fullerEvent = `${fullEvent}-${playerLevel}`;
+      const reCountZone = splits.every((split) => {
+        if (split.details === newestEvent.details) {
+          if (playerLevel - split.playerLevel <= 5) {
+            return false;
+          }
+        }
+        return true;
+      });
+      if (msSplits.includes(fullEvent) && reCountZone) {
         let delta = 0;
         let total = 0;
         if (splits.length > 0) {
@@ -211,10 +141,11 @@ const PoeTimer = () => {
           setSplitsLevel([
             {
               details: {
-                level: "Start",
+                level: playerLevel,
               },
               delta: 0,
               total: 0,
+              timestamp: newestEvent.timestamp,
             },
           ]);
         }
@@ -222,8 +153,11 @@ const PoeTimer = () => {
           ...splits,
           {
             ...newestEvent,
+            playerLevel,
+            data: `${newestEvent.data.replace("The ", "")} (${playerLevel})`,
             delta,
             total,
+            fullerEvent,
           },
         ]);
       }
@@ -231,14 +165,22 @@ const PoeTimer = () => {
     if (newestEvent.type === "level") {
       const { details } = newestEvent;
       const rightPlayer = !playerName || playerName === details.player;
+      if (rightPlayer) {
+        setPlayerLevel(details.level);
+      }
 
       if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
         let delta = 0;
         let total = 0;
         if (splitsLevel.length > 0) {
-          delta = newestEvent.timestamp - splits[splits.length - 1].timestamp;
-          total = newestEvent.timestamp - splits[0].timestamp;
+          delta =
+            newestEvent.timestamp -
+            splitsLevel[splitsLevel.length - 1].timestamp;
+          total = newestEvent.timestamp - splitsLevel[0].timestamp;
         }
+        console.log("splitsLevel", splitsLevel);
+        console.log("delta", delta);
+        console.log("total", total);
         setSplitsLevel([
           ...splitsLevel,
           {
@@ -381,9 +323,9 @@ const PoeTimer = () => {
                       marginRight: "1em",
                     }}
                   >
-                    {`${moment(event.timestamp).format(DATE_FORMAT)}: ${
-                      event.data
-                    }`}
+                    {`${moment(event.timestamp).format(
+                      "YYYY/MM/DD hh:mm a"
+                    )}: ${event.data}`}
                   </div>
                   <label>
                     Split

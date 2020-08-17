@@ -1,63 +1,15 @@
-# miniature-metropolises-js
+# poe-helper-b
 
-(m7e m10s) A way to play Tiny Towns online, JavaScript edition
+Currently just a timer.
 
-## Building Blueprint Shapes
+## Instructions
 
-https://docs.google.com/spreadsheets/d/1GDSNe-IIiIBfKvkbsz_oXphl8n-mcJEDoOasDYmFC_o/edit
+1. Clone repo into same drive as Path of Exile but not in Program Files (x86)
+2. Run `make_hardlinks.bat`
+3. Run `poe_helper.bat`
+4. Navigate your web browser to `localhost:3000`
 
-## Game State
+### Timer
 
-```json
-{
-  "players": [
-    {
-      "id": 1,
-      "name": "player 1",
-      "board": [null, "grey", "special", "blue", null, ... "yellow"],
-      "specialBuilding": "library"
-    },
-    {
-      "id": 2,
-      "name": "player 2",
-      "board": [null, "house", "red", "blue", null, ..., "yellow"],
-      "specialBuilding": "tower"
-    }
-  ],
-  "gamePhase": "placing_tile",
-  "phaseInfo": "red",
-  "activePlayer": 2,
-  "finishedPlayers": [1],
-  "buildings": {
-    "well": "well",
-    "industrial": "factory",
-  }
-}
-```
-
-Other players `specialBuilding` is hidden unless they've already constructed it.
-
-## Idea
-
-- &lt;game started&gt;
-- Game state: `choosing_tile, 1`,
-- Player 1 sends
-
-```json
-{
-  "phase": "choosing_tile",
-  "color": "red"
-}
-```
-
-- Receive new game state: `placing_tile, 1, red`
-- Player 2 sends
-
-```json
-{
-  "phase": "placing_tile",
-  "position": 7
-}
-```
-
-- Don't re-broadcast updated state until everyone has placed?
+- Refreshing the page and both "Reload from ..." buttons will load `Client.txt` and replay all events starting from "Start"
+- Use the "Split" checkbox to mark splits based on entering zones.

@@ -1,7 +1,7 @@
 {
-  "name": "miniature-metropolises-js",
+  "name": "poe-helper-b",
   "version": "1.0.0",
-  "description": "(m7e m10s) A way to play Tiny Towns online, JavaScript edition",
+  "description": "Useful stuff for Path of Exile",
   "main": "index.js",
   "scripts": {
     "back": "nodemon --ignore ./webpack.config.js --ignore src/ --ignore dist/ --delay 2 ./server/server.js",
@@ -22,15 +22,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nick-ng/miniature-metropolises-js.git"
+    "url": "git+https://github.com/nick-ng/poe-helper-b.git"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nick-ng/miniature-metropolises-js/issues"
+    "url": "https://github.com/nick-ng/poe-helper-b/issues"
   },
-  "homepage": "https://github.com/nick-ng/miniature-metropolises-js#readme",
+  "homepage": "https://github.com/nick-ng/poe-helper-b#readme",
   "dependencies": {
     "@babel/core": "^7.8.7",
     "@babel/plugin-proposal-class-properties": "^7.8.3",

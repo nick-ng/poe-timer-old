@@ -1,5 +1,4 @@
-sa-client.txt
-steam-client.txt
+*.txt
 
 # Build folder
 /dist/*

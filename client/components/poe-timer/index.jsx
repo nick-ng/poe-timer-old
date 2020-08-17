@@ -253,9 +253,11 @@ const PoeTimer = () => {
           {splits.length > 0 && (
             <ThreeColumn>
               <div>Now</div>
-              <Right>{`+${secondsToBiggerTime(
-                (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
-              )}`}</Right>
+              <Right>
+                {secondsToBiggerTime(
+                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
+                )}
+              </Right>
               <Right>
                 {secondsToBiggerTime(
                   (nowTimestamp - splits[0].timestamp) / 1000
@@ -280,9 +282,11 @@ const PoeTimer = () => {
           {splits.length > 0 && (
             <ThreeColumn>
               <div>Now</div>
-              <Right>{`+${secondsToBiggerTime(
-                (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
-              )}`}</Right>
+              <Right>
+                {secondsToBiggerTime(
+                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
+                )}
+              </Right>
               <Right>
                 {secondsToBiggerTime(
                   (nowTimestamp - splits[0].timestamp) / 1000

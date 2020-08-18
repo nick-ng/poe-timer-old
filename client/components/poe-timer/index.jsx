@@ -10,8 +10,8 @@ const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
 const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
 
+const DISPLAY_DATE_FORMAT = "YYYY/MM/DD hh:mm a";
 const LEVEL_MILESTONES = [
-  5,
   10,
   20,
   30,
@@ -131,7 +131,7 @@ const PoeTimer = () => {
       const fullerEvent = `${fullEvent}-${playerLevel}`;
       const reCountZone = splits.every((split) => {
         if (split.details === newestEvent.details) {
-          if (playerLevel - split.playerLevel <= 5) {
+          if (playerLevel - split.playerLevel <= levelThreshold) {
             return false;
           }
         }
@@ -216,7 +216,16 @@ const PoeTimer = () => {
     localStorage.setItem(LEVEL_THRESHOLD, levelThreshold);
   }, [levelThreshold]);
 
-  const startDate = moment(startTimestamp).format(DATE_FORMAT);
+  const startDate = moment(startTimestamp).format(DISPLAY_DATE_FORMAT);
+  const markdownTable = splits
+    .map((split) =>
+      [
+        split.data,
+        secondsToBiggerTime(split.delta / 1000),
+        secondsToBiggerTime(split.total / 1000),
+      ].join("|")
+    )
+    .join("\n");
 
   return (
     <div>
@@ -277,6 +286,14 @@ const PoeTimer = () => {
                 )}
               </Right>
             </ThreeColumn>
+          )}
+          {splits.length > 0 && (
+            <textarea
+              style={{ marginTop: "1em", width: "350px", height: "60px" }}
+              value={`## ${startDate} - ${secondsToBiggerTime(
+                splits[splits.length - 1].total / 1000
+              )}\nZone|Split|Time\n--|--|--\n${markdownTable}`}
+            />
           )}
         </div>
         <div>

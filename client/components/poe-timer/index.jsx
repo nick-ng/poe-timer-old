@@ -8,6 +8,7 @@ import { processLine, secondsToBiggerTime, DATE_FORMAT } from "./utils";
 const MILESTONE_SPLITS = "POE_MILESTONE_SPLITS";
 const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
+const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
 
 const LEVEL_MILESTONES = [
   5,
@@ -80,6 +81,11 @@ const PoeTimer = () => {
     localStorage.getItem(PLAYER_NAME) || ""
   );
   const [playerLevel, setPlayerLevel] = useState(1);
+  const [levelThreshold, setLevelThreshold] = useState(
+    parseInt(localStorage.getItem(LEVEL_THRESHOLD) || 10),
+    10
+  );
+  const [socketConnected, setSocketConnected] = useState(false);
 
   const reloadEvents = (start = 0) => {
     setSplits([]);
@@ -95,7 +101,7 @@ const PoeTimer = () => {
 
     socket.on("connect", () => {
       console.log("connected");
-      reloadEvents(startTimestamp);
+      setSocketConnected(true);
     });
 
     socket.on("clientLine", (data) => {
@@ -178,9 +184,7 @@ const PoeTimer = () => {
             splitsLevel[splitsLevel.length - 1].timestamp;
           total = newestEvent.timestamp - splitsLevel[0].timestamp;
         }
-        console.log("splitsLevel", splitsLevel);
-        console.log("delta", delta);
-        console.log("total", total);
+
         setSplitsLevel([
           ...splitsLevel,
           {
@@ -194,6 +198,12 @@ const PoeTimer = () => {
   }, [newestEvent]);
 
   useEffect(() => {
+    if (socketConnected) {
+      reloadEvents(startTimestamp);
+    }
+  }, [socketConnected]);
+
+  useEffect(() => {
     localStorage.setItem(MILESTONE_SPLITS, JSON.stringify(msSplits));
   }, [msSplits]);
   useEffect(() => {
@@ -202,6 +212,9 @@ const PoeTimer = () => {
   useEffect(() => {
     localStorage.setItem(PLAYER_NAME, playerName);
   }, [playerName]);
+  useEffect(() => {
+    localStorage.setItem(LEVEL_THRESHOLD, levelThreshold);
+  }, [levelThreshold]);
 
   const startDate = moment(startTimestamp).format(DATE_FORMAT);
 
@@ -301,7 +314,15 @@ const PoeTimer = () => {
             overflowY: "scroll",
           }}
         >
-          <div>{`${allEvents.length} events`}</div>
+          <label>
+            Zone-Level Threshold:{" "}
+            <input
+              value={levelThreshold}
+              onChange={(e) => {
+                setLevelThreshold(e.target.value);
+              }}
+            />
+          </label>
           {allEvents
             .filter((event) => event.type !== "level")
             .map((event) => {

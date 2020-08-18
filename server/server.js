@@ -19,8 +19,10 @@ io.on("connection", (socket) => {
   console.log("a user connected");
 });
 
-const lineHandler = (line) => {
-  io.emit("clientLine", line);
+const lineHandler = (line, i) => {
+  setTimeout(() => {
+    io.emit("clientLine", line);
+  }, 20 * i);
 };
 
 const standAloneLog = ".\\sa-client.txt";

@@ -105,6 +105,7 @@ const PoeTimer = () => {
     });
 
     socket.on("clientLine", (data) => {
+      console.log("data", data);
       const event = processLine(data);
       setAllEvents((es) => [...es, event].filter((a) => a.type).slice(-5000));
       setNewestEvent(event);

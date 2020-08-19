@@ -290,7 +290,7 @@ const PoeTimer = () => {
           {splits.length > 0 && (
             <textarea
               style={{ marginTop: "1em", width: "350px", height: "60px" }}
-              value={`## ${startDate} - ${secondsToBiggerTime(
+              value={`### ${startDate} - ${secondsToBiggerTime(
                 splits[splits.length - 1].total / 1000
               )}\nZone|Split|Time\n--|--|--\n${markdownTable}`}
             />

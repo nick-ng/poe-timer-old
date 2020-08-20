@@ -141,8 +141,8 @@ const PoeTimer = () => {
         let delta = 0;
         let total = 0;
         if (splits.length > 0) {
-          delta = newestEvent.timestamp - splits[splits.length - 1].timestamp;
-          total = newestEvent.timestamp - splits[0].timestamp;
+          delta = newestEvent.timestamp - splits[0].timestamp;
+          total = newestEvent.timestamp - splits[splits.length - 1].timestamp;
         } else {
           setSplitsLevel([
             {
@@ -179,10 +179,11 @@ const PoeTimer = () => {
         let delta = 0;
         let total = 0;
         if (splitsLevel.length > 0) {
-          delta =
+          delta = newestEvent.timestamp - splitsLevel[0].timestamp;
+
+          total =
             newestEvent.timestamp -
             splitsLevel[splitsLevel.length - 1].timestamp;
-          total = newestEvent.timestamp - splitsLevel[0].timestamp;
         }
 
         setSplitsLevel([
@@ -270,12 +271,12 @@ const PoeTimer = () => {
               <div>Now</div>
               <Right>
                 {secondsToBiggerTime(
-                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
+                  (nowTimestamp - splits[0].timestamp) / 1000
                 )}
               </Right>
               <Right>
                 {secondsToBiggerTime(
-                  (nowTimestamp - splits[0].timestamp) / 1000
+                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
                 )}
               </Right>
             </ThreeColumn>
@@ -307,12 +308,12 @@ const PoeTimer = () => {
               <div>Now</div>
               <Right>
                 {secondsToBiggerTime(
-                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
+                  (nowTimestamp - splits[0].timestamp) / 1000
                 )}
               </Right>
               <Right>
                 {secondsToBiggerTime(
-                  (nowTimestamp - splits[0].timestamp) / 1000
+                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
                 )}
               </Right>
             </ThreeColumn>

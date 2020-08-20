@@ -106,7 +106,7 @@ const PoeTimer = () => {
 
     socket.on("clientLine", (data) => {
       const event = processLine(data);
-      setAllEvents((es) => [...es, event].filter((a) => a.type).slice(-5000));
+      setAllEvents((es) => [event, ...es].filter((a) => a.type).slice(-5000));
       setNewestEvent(event);
     });
 
@@ -156,7 +156,6 @@ const PoeTimer = () => {
           ]);
         }
         setSplits([
-          ...splits,
           {
             ...newestEvent,
             playerLevel,
@@ -165,6 +164,7 @@ const PoeTimer = () => {
             total,
             fullerEvent,
           },
+          ...splits,
         ]);
       }
     }
@@ -186,12 +186,12 @@ const PoeTimer = () => {
         }
 
         setSplitsLevel([
-          ...splitsLevel,
           {
             ...newestEvent,
             delta,
             total,
           },
+          ...splitsLevel,
         ]);
       }
     }

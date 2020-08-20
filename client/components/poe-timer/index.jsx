@@ -265,13 +265,6 @@ const PoeTimer = () => {
             <BoldRight>Split</BoldRight>
             <BoldRight>Time</BoldRight>
           </ThreeColumn>
-          {splits.map((split) => (
-            <ThreeColumn key={split.timestamp}>
-              <div>{split.data}</div>
-              <Right>{secondsToBiggerTime(split.delta / 1000)}</Right>
-              <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
-            </ThreeColumn>
-          ))}
           {splits.length > 0 && (
             <ThreeColumn>
               <div>Now</div>
@@ -287,6 +280,13 @@ const PoeTimer = () => {
               </Right>
             </ThreeColumn>
           )}
+          {splits.map((split) => (
+            <ThreeColumn key={split.timestamp}>
+              <div>{split.data}</div>
+              <Right>{secondsToBiggerTime(split.delta / 1000)}</Right>
+              <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
+            </ThreeColumn>
+          ))}
           {splits.length > 0 && (
             <textarea
               style={{ marginTop: "1em", width: "350px", height: "60px" }}
@@ -302,13 +302,6 @@ const PoeTimer = () => {
             <BoldRight>Split</BoldRight>
             <BoldRight>Time</BoldRight>
           </ThreeColumn>
-          {splitsLevel.map((split) => (
-            <ThreeColumn key={split.timestamp}>
-              <div>{split.details.level}</div>
-              <Right>{secondsToBiggerTime(split.delta / 1000)}</Right>
-              <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
-            </ThreeColumn>
-          ))}
           {splits.length > 0 && (
             <ThreeColumn>
               <div>Now</div>
@@ -324,6 +317,13 @@ const PoeTimer = () => {
               </Right>
             </ThreeColumn>
           )}
+          {splitsLevel.map((split) => (
+            <ThreeColumn key={split.timestamp}>
+              <div>{split.details.level}</div>
+              <Right>{secondsToBiggerTime(split.delta / 1000)}</Right>
+              <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
+            </ThreeColumn>
+          ))}
         </div>
         <div
           style={{

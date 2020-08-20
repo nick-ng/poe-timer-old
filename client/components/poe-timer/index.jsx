@@ -180,7 +180,6 @@ const PoeTimer = () => {
         let total = 0;
         if (splitsLevel.length > 0) {
           delta = newestEvent.timestamp - splitsLevel[0].timestamp;
-
           total =
             newestEvent.timestamp -
             splitsLevel[splitsLevel.length - 1].timestamp;
@@ -292,7 +291,7 @@ const PoeTimer = () => {
             <textarea
               style={{ marginTop: "1em", width: "350px", height: "60px" }}
               value={`### ${startDate} - ${secondsToBiggerTime(
-                splits[splits.length - 1].total / 1000
+                splits[0].total / 1000
               )}\nZone|Split|Time\n--|--|--\n${markdownTable}`}
             />
           )}

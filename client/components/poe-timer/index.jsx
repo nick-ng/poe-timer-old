@@ -45,6 +45,26 @@ const ThreeColumn = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 2em 0.2em;
+
+  div {
+    padding: 0.1em 0.2em;
+  }
+`;
+
+const EventRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &:nth-child(even) {
+    background-color: Gainsboro;
+  }
+
+  label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 `;
 
 const Bold = styled.div`
@@ -217,15 +237,16 @@ const PoeTimer = () => {
   }, [levelThreshold]);
 
   const startDate = moment(startTimestamp).format(DISPLAY_DATE_FORMAT);
-  const markdownTable = splits
-    .map((split) =>
+  const markdownTable = [
+    ...splits.map((split) =>
       [
         split.data,
         secondsToBiggerTime(split.delta / 1000),
         secondsToBiggerTime(split.total / 1000),
       ].join("|")
-    )
-    .join("\n");
+    ),
+  ];
+  markdownTable.reverse();
 
   return (
     <div>
@@ -266,7 +287,7 @@ const PoeTimer = () => {
             <BoldRight>Time</BoldRight>
           </ThreeColumn>
           {splits.length > 0 && (
-            <ThreeColumn>
+            <ThreeColumn style={{ backgroundColor: "Gainsboro" }}>
               <div>Now</div>
               <Right>
                 {secondsToBiggerTime(
@@ -292,7 +313,7 @@ const PoeTimer = () => {
               style={{ marginTop: "1em", width: "350px", height: "60px" }}
               value={`### ${startDate} - ${secondsToBiggerTime(
                 splits[0].total / 1000
-              )}\nZone|Split|Time\n--|--|--\n${markdownTable}`}
+              )}\nZone|Split|Time\n--|--|--\n${markdownTable.join("\n")}`}
             />
           )}
         </div>
@@ -303,7 +324,7 @@ const PoeTimer = () => {
             <BoldRight>Time</BoldRight>
           </ThreeColumn>
           {splits.length > 0 && (
-            <ThreeColumn>
+            <ThreeColumn style={{ backgroundColor: "Gainsboro" }}>
               <div>Now</div>
               <Right>
                 {secondsToBiggerTime(
@@ -345,14 +366,7 @@ const PoeTimer = () => {
             .map((event) => {
               const fullEvent = `${event.type}-${event.data}`;
               return (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                  key={event.timestamp}
-                >
+                <EventRow key={event.timestamp}>
                   <button
                     onClick={() => {
                       setStartTimestamp(event.timestamp);
@@ -383,7 +397,7 @@ const PoeTimer = () => {
                       }}
                     />
                   </label>
-                </div>
+                </EventRow>
               );
             })}
         </div>

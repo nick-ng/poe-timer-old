@@ -1,5 +1,8 @@
 sa-client.txt
 steam-client.txt
+/steam-client/*
+
+make_symlinks.sh
 
 # Build folder
 /dist/*

@@ -25,14 +25,24 @@ const lineHandler = (line, i) => {
   }, 20 * i);
 };
 
-const standAloneLog = ".\\sa-client.txt";
-const steamLog = ".\\steam-client.txt";
+const standAloneLogPath = ".\\sa-client.txt";
+const steamLogPath = ".\\steam-client.txt";
+const linuxLogPath = "./steam-client/Client.txt";
 
-const tailSA = new Tail(standAloneLog, "\n", { interval: 499 });
-const tailSteam = new Tail(steamLog, "\n", { interval: 499 });
+if (fs.existsSync(standAloneLogPath)) {
+  const tailSA = new Tail(standAloneLogPath, "\n", { interval: 499 });
+  tailSA.on("line", lineHandler);
+}
 
-tailSA.on("line", lineHandler);
-tailSteam.on("line", lineHandler);
+if (fs.existsSync(steamLogPath)) {
+  const tailSteam = new Tail(steamLogPath, "\n", { interval: 499 });
+  tailSteam.on("line", lineHandler);
+}
+
+if (fs.existsSync(linuxLogPath)) {
+  const tailLinux = new Tail(linuxLogPath, "\n", { interval: 499 });
+  tailLinux.on("line", lineHandler);
+}
 
 const router = express.Router();
 
@@ -42,14 +52,32 @@ app.use(express.json());
 applyMiddlewares(app);
 applyRouters(router);
 router.get("/clienttxt", (req, res, next) => {
+  console.log("hi");
   try {
     const { start } = req.query;
-    const sa = fs.readFileSync(standAloneLog, { encoding: "utf-8" });
-    const steam = fs.readFileSync(steamLog, { encoding: "utf-8" });
-    const sab = sa.split("\n");
-    const steamb = steam.split("\n");
-    sab
+    let sab = [];
+    let steamb = [];
+    let linuxb = [];
+    if (fs.existsSync(standAloneLogPath)) {
+      console.log("sa hi");
+      const sa = fs.readFileSync(standAloneLogPath, { encoding: "utf-8" });
+      sab = sa.split("\n").slice(-10000);
+      console.log("sab.length", sab.length);
+    }
+    if (fs.existsSync(steamLogPath)) {
+      console.log("steam hi");
+      const steam = fs.readFileSync(steamLogPath, { encoding: "utf-8" });
+      steamb = steam.split("\n").slice(-10000);
+    }
+    if (fs.existsSync(linuxLogPath)) {
+      console.log("steam hi");
+      const linux = fs.readFileSync(linuxLogPath, { encoding: "utf-8" });
+      linuxb = linux.split("\n").slice(-10000);
+    }
+    []
+      .concat(sab)
       .concat(steamb)
+      .concat(linuxb)
       .sort()
       .filter((line) => {
         if (!start) {

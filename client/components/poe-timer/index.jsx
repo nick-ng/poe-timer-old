@@ -3,7 +3,8 @@ import moment from "moment";
 import styled from "styled-components";
 import io from "socket.io-client";
 
-import { processLine, secondsToBiggerTime } from "./utils";
+import { secondsToBiggerTime } from "./utils";
+import EventItem from "./event-item";
 
 const SPLIT_IGNORE_LIST = "POE_SPLIT_IGNORE_LIST";
 const PLAYER_NAME = "POE_PLAYER_NAME";
@@ -51,22 +52,6 @@ const ThreeColumn = styled.div`
   }
 `;
 
-const EventRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  &:nth-child(even) {
-    background-color: Gainsboro;
-  }
-
-  label {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-`;
-
 const Bold = styled.div`
   font-weight: bold;
 `;
@@ -81,7 +66,7 @@ const Right = styled.div`
   text-align: right;
 `;
 
-const PoeTimer = () => {
+export default function PoeTimer() {
   const [allEvents, setAllEvents] = useState([]);
   const [newestEvent, setNewestEvent] = useState({
     timestamp: 0,
@@ -392,46 +377,27 @@ const PoeTimer = () => {
             .map((event) => {
               const fullEvent = `${event.type}-${event.data}`;
               return (
-                <EventRow key={event.timestamp}>
-                  <button
-                    onClick={() => {
-                      setStartTimestamp(event.timestamp);
-                    }}
-                  >
-                    Start from here
-                  </button>
-                  <div
-                    style={{
-                      marginRight: "1em",
-                    }}
-                  >
-                    {`${moment(event.timestamp).format(
-                      "YYYY/MM/DD hh:mm a"
-                    )}: ${event.data}`}
-                  </div>
-                  <label>
-                    Split
-                    <input
-                      type="checkbox"
-                      checked={!splitIgnoreList.includes(fullEvent)}
-                      onChange={() => {
-                        if (!splitIgnoreList.includes(fullEvent)) {
-                          setSplitIgnoreList(
-                            splitIgnoreList.filter((e) => e !== fullEvent)
-                          );
-                        } else {
-                          setSplitIgnoreList([...splitIgnoreList, fullEvent]);
-                        }
-                      }}
-                    />
-                  </label>
-                </EventRow>
+                <EventItem
+                  key={event.timestamp}
+                  event={event}
+                  isIgnored={!splitIgnoreList.includes(fullEvent)}
+                  startChangeHandler={() => {
+                    setStartTimestamp(event.timestamp);
+                  }}
+                  splitIgnoreChangeHandler={() => {
+                    if (!splitIgnoreList.includes(fullEvent)) {
+                      setSplitIgnoreList(
+                        splitIgnoreList.filter((e) => e !== fullEvent)
+                      );
+                    } else {
+                      setSplitIgnoreList([...splitIgnoreList, fullEvent]);
+                    }
+                  }}
+                />
               );
             })}
         </div>
       </PageColumns>
     </div>
   );
-};
-
-export default PoeTimer;
+}

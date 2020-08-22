@@ -3,9 +3,9 @@ import moment from "moment";
 import styled from "styled-components";
 import io from "socket.io-client";
 
-import { processLine, secondsToBiggerTime, DATE_FORMAT } from "./utils";
+import { processLine, secondsToBiggerTime } from "./utils";
 
-const MILESTONE_SPLITS = "POE_MILESTONE_SPLITS";
+const SPLIT_IGNORE_LIST = "POE_SPLIT_IGNORE_LIST";
 const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
 const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
@@ -90,8 +90,8 @@ const PoeTimer = () => {
   });
   const [splits, setSplits] = useState([]);
   const [splitsLevel, setSplitsLevel] = useState([]);
-  const [msSplits, setMsSplits] = useState(
-    JSON.parse(localStorage.getItem(MILESTONE_SPLITS) || "[]")
+  const [splitIgnoreList, setSplitIgnoreList] = useState(
+    JSON.parse(localStorage.getItem(SPLIT_IGNORE_LIST) || "[]")
   );
   const [startTimestamp, setStartTimestamp] = useState(
     parseInt(localStorage.getItem(START_TIMESTAMP) || 0, 10)
@@ -106,6 +106,7 @@ const PoeTimer = () => {
     10
   );
   const [socketConnected, setSocketConnected] = useState(false);
+  const [eventFilter, setEventFilter] = useState("");
 
   const reloadEvents = (start = 0) => {
     setSplits([]);
@@ -124,11 +125,9 @@ const PoeTimer = () => {
       setSocketConnected(true);
     });
 
-    socket.on("clientLine", (data) => {
-      console.log("data", data);
-      const event = processLine(data);
-      setAllEvents((es) => [event, ...es].filter((a) => a.type).slice(-5000));
-      setNewestEvent(event);
+    socket.on("clientObject", (data) => {
+      setAllEvents((es) => [data, ...es].filter((a) => a.type).slice(-5000));
+      setNewestEvent(data);
     });
 
     // set time updater
@@ -158,7 +157,7 @@ const PoeTimer = () => {
         }
         return true;
       });
-      if (msSplits.includes(fullEvent) && reCountZone) {
+      if (!splitIgnoreList.includes(fullEvent) && reCountZone) {
         let delta = 0;
         let total = 0;
         if (splits.length > 0) {
@@ -225,8 +224,8 @@ const PoeTimer = () => {
   }, [socketConnected]);
 
   useEffect(() => {
-    localStorage.setItem(MILESTONE_SPLITS, JSON.stringify(msSplits));
-  }, [msSplits]);
+    localStorage.setItem(SPLIT_IGNORE_LIST, JSON.stringify(splitIgnoreList));
+  }, [splitIgnoreList]);
   useEffect(() => {
     localStorage.setItem(START_TIMESTAMP, startTimestamp);
   }, [startTimestamp]);
@@ -354,16 +353,42 @@ const PoeTimer = () => {
           }}
         >
           <label>
-            Zone-Level Threshold:{" "}
+            Zone-Level Threshold:
             <input
+              style={{
+                width: "2em",
+                marginRight: "1em",
+              }}
+              type="text"
               value={levelThreshold}
               onChange={(e) => {
                 setLevelThreshold(e.target.value);
               }}
             />
           </label>
+          <label>
+            Filter:
+            <input
+              type="text"
+              value={eventFilter}
+              onChange={(e) => {
+                setEventFilter(e.target.value);
+              }}
+            />
+          </label>
+          <button
+            onClick={() => {
+              setEventFilter("");
+            }}
+          >
+            Clear
+          </button>
           {allEvents
-            .filter((event) => event.type !== "level")
+            .filter(
+              (event) =>
+                event.type !== "level" &&
+                event.data.toUpperCase().includes(eventFilter.toUpperCase())
+            )
             .map((event) => {
               const fullEvent = `${event.type}-${event.data}`;
               return (
@@ -388,12 +413,14 @@ const PoeTimer = () => {
                     Split
                     <input
                       type="checkbox"
-                      checked={msSplits.includes(fullEvent)}
+                      checked={!splitIgnoreList.includes(fullEvent)}
                       onChange={() => {
-                        if (msSplits.includes(fullEvent)) {
-                          setMsSplits(msSplits.filter((e) => e !== fullEvent));
+                        if (!splitIgnoreList.includes(fullEvent)) {
+                          setSplitIgnoreList(
+                            splitIgnoreList.filter((e) => e !== fullEvent)
+                          );
                         } else {
-                          setMsSplits([...msSplits, fullEvent]);
+                          setSplitIgnoreList([...splitIgnoreList, fullEvent]);
                         }
                       }}
                     />

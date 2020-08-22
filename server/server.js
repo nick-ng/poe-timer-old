@@ -10,6 +10,8 @@ const fs = require("fs");
 
 const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
+const poeLogParser = require("./services/poe-log-parser");
+const { processLine } = require("./services/poe-log-parser");
 
 const app = express();
 const server = http.createServer(app);
@@ -19,10 +21,17 @@ io.on("connection", (socket) => {
   console.log("a user connected");
 });
 
-const lineHandler = (line, i) => {
+const lineEmitter = (lineObject, i = 0) => {
   setTimeout(() => {
-    io.emit("clientLine", line);
-  }, 20 * i);
+    io.emit("clientObject", lineObject);
+  }, 50 * i);
+};
+
+const lineHandler = (line) => {
+  const lineObject = poeLogParser.processLine(line, true);
+  if (lineObject.type && lineObject.type !== "donotsend") {
+    lineEmitter(lineObject, 0);
+  }
 };
 
 const standAloneLogPath = ".\\sa-client.txt";
@@ -52,25 +61,24 @@ app.use(express.json());
 applyMiddlewares(app);
 applyRouters(router);
 router.get("/clienttxt", (req, res, next) => {
-  console.log("hi");
   try {
     const { start } = req.query;
     let sab = [];
     let steamb = [];
     let linuxb = [];
     if (fs.existsSync(standAloneLogPath)) {
-      console.log("sa hi");
+      console.log("Loading Stand Alone Client.txt");
       const sa = fs.readFileSync(standAloneLogPath, { encoding: "utf-8" });
       sab = sa.split("\n").slice(-10000);
       console.log("sab.length", sab.length);
     }
     if (fs.existsSync(steamLogPath)) {
-      console.log("steam hi");
+      console.log("Loading Steam Client.txt");
       const steam = fs.readFileSync(steamLogPath, { encoding: "utf-8" });
       steamb = steam.split("\n").slice(-10000);
     }
     if (fs.existsSync(linuxLogPath)) {
-      console.log("steam hi");
+      console.log("Loading Steam Client.txt (Linux)");
       const linux = fs.readFileSync(linuxLogPath, { encoding: "utf-8" });
       linuxb = linux.split("\n").slice(-10000);
     }
@@ -78,29 +86,22 @@ router.get("/clienttxt", (req, res, next) => {
       .concat(sab)
       .concat(steamb)
       .concat(linuxb)
-      .sort()
-      .filter((line) => {
-        if (!start) {
-          return true;
-        }
-
-        const dateMatches = line.match(
-          /^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}/
-        );
-        if (!dateMatches || dateMatches.length === 0) {
+      .map((line) => processLine(line, true))
+      .filter((lineObject) => {
+        if (!lineObject.type) {
           return false;
         }
-        const dateString = dateMatches[0];
-        const date = moment(dateString, "YYYY/MM/DD HH:mm:ss");
-        timestamp = date.valueOf();
-        if (parseInt(start, 10) <= timestamp) {
-          return true;
+        if (lineObject.type === "donotsend") {
+          return false;
         }
-
-        return false;
+        return (
+          lineObject.type &&
+          (!start || parseInt(start, 10) <= lineObject.timestamp)
+        );
       })
+      .sort((a, b) => a.timestamp - b.timestamp)
       .slice(-10000)
-      .forEach(lineHandler);
+      .forEach(lineEmitter);
     res.sendStatus(200);
   } catch (e) {
     console.log("error when reading files.", e);

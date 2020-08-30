@@ -13,6 +13,18 @@ const START_TIMESTAMP = "POE_START_TIMESTAMP";
 const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
 
 const DISPLAY_DATE_FORMAT = "YYYY/MM/DD hh:mm a";
+const ALWAYS_COUNT_ZONES = [
+  "Lioneye's Watch",
+  "Forest Encampment",
+  "Sarn Encampment",
+  "Highgate",
+  "Overseer's Tower",
+  "Bridge Encampment",
+  "Oriath Docks",
+  " Hideout",
+  "Aspirants' Plaza",
+  "Aspirant's Trial",
+];
 const LEVEL_MILESTONES = [
   10,
   20,
@@ -146,14 +158,13 @@ export default function PoeTimer() {
     const fullEvent = `${newestEvent.type}-${newestEvent.data}`;
     if (newestEvent.type === "enter") {
       const fullerEvent = `${fullEvent}-${playerLevel}`;
-      const reCountZone = splits.every((split) => {
-        if (split.details === newestEvent.details) {
-          if (playerLevel - split.playerLevel <= levelThreshold) {
-            return false;
-          }
-        }
-        return true;
-      });
+      const reCountZone =
+        ALWAYS_COUNT_ZONES.includes(newestEvent.details) ||
+        splits.every(
+          (split) =>
+            split.details !== newestEvent.details ||
+            playerLevel - split.playerLevel > levelThreshold
+        );
       if (!splitIgnoreList.includes(fullEvent) && reCountZone) {
         let delta = 0;
         let total = 0;

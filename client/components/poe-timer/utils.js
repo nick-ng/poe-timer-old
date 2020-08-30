@@ -81,3 +81,29 @@ export const secondsToBiggerTime = (seconds) => {
     `${secondsB}`.padStart(2, "0"),
   ].join(":");
 };
+
+export const biggerTimeToSeconds = (biggerTime) => {
+  const [hourString, minuteString, secondString] = biggerTime.trim().split(":");
+  const hours = parseInt(hourString, 10);
+  const minutes = parseInt(minuteString, 10);
+  const seconds = parseInt(secondString, 10);
+
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+export const parseLogString = (logString) => {
+  return logString
+    .split("\n")
+    .filter((s) => s.match(/\d+:\d{2}:\d{2}\s*\|\s*\d+:\d{2}:\d{2}/))
+    .map((s) => s.replace(/^\||\|$/g, ""))
+    .map((s) => {
+      const [zoneLevel, splitString, totalString] = s.split("|");
+
+      return {
+        zone: zoneLevel.replace(/\(\d+\)\s*$/, "").trim(),
+        level: parseInt(zoneLevel.match(/(?<=\()\d+(?=\)\s*$)/)[0], 10),
+        split: biggerTimeToSeconds(splitString),
+        total: biggerTimeToSeconds(totalString),
+      };
+    });
+};

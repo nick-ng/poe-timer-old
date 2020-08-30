@@ -11,6 +11,9 @@ const Nav = () => (
     <NavLink icon="fa-clock-o" to="/" exact>
       Timer
     </NavLink>
+    <NavLink icon="fa-plus" to="/log-combiner">
+      Log Combiner
+    </NavLink>
   </div>
 );
 

@@ -5,6 +5,7 @@ import io from "socket.io-client";
 
 import { secondsToBiggerTime } from "./utils";
 import EventItem from "./event-item";
+import { LogTextArea } from "./log-combiner";
 
 const SPLIT_IGNORE_LIST = "POE_SPLIT_IGNORE_LIST";
 const PLAYER_NAME = "POE_PLAYER_NAME";
@@ -38,8 +39,19 @@ const LEVEL_MILESTONES = [
 const PageColumns = styled.div`
   margin-top: 1em;
   display: grid;
-  grid-template-columns: auto auto auto;
-  gap: 2em;
+  grid-template-columns: 3fr 2fr 3fr;
+  gap: 0.5em;
+
+  & > * {
+    border: 1px solid grey;
+    padding: 0.5em;
+  }
+`;
+
+const ControlBar = styled.div`
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 1em;
 `;
 
 const ThreeColumn = styled.div`
@@ -164,6 +176,7 @@ export default function PoeTimer() {
           {
             ...newestEvent,
             playerLevel,
+            zone: newestEvent.data.replace("The ", ""),
             data: `${newestEvent.data.replace("The ", "")} (${playerLevel})`,
             delta,
             total,
@@ -233,37 +246,75 @@ export default function PoeTimer() {
   ];
   markdownTable.reverse();
 
+  const logCSV = [
+    ...splits.map((split) =>
+      [
+        split.zone,
+        split.playerLevel,
+        Math.round(split.delta / 1000),
+        Math.round(split.total / 1000),
+      ].join("\t")
+    ),
+  ];
+  logCSV.reverse();
+
   return (
     <div>
       <h1>Timer</h1>
-      <p>{`Starting from ${startDate}`}</p>
-      <label>
-        Player:{" "}
-        <input
-          value={playerName}
-          onChange={(e) => {
-            setPlayerName(e.target.value);
-          }}
-        />
-      </label>
-      <button onClick={() => reloadEvents(startTimestamp)}>
-        {`Reload from ${startDate}`}
-      </button>
-      <button onClick={() => reloadEvents(0)}>Reload everything</button>
-      <button
-        onClick={() => {
-          setStartTimestamp(Date.now());
-        }}
-      >
-        Change start to now
-      </button>
-      <button
-        onClick={() => {
-          setStartTimestamp(0);
-        }}
-      >
-        Change start to zero
-      </button>
+      <ControlBar>
+        <div>
+          <p>{`Starting from ${startDate}`}</p>
+          <button onClick={() => reloadEvents(startTimestamp)}>
+            {`Reload from ${startDate}`}
+          </button>
+          <button onClick={() => reloadEvents(0)}>Reload everything</button>
+          <button
+            onClick={() => {
+              setStartTimestamp(Date.now());
+            }}
+          >
+            Change start to now
+          </button>
+          <button
+            onClick={() => {
+              setStartTimestamp(0);
+            }}
+          >
+            Change start to zero
+          </button>
+          <label>
+            Player:{" "}
+            <input
+              value={playerName}
+              onChange={(e) => {
+                setPlayerName(e.target.value);
+              }}
+            />
+          </label>
+        </div>
+        <div>
+          <LogTextArea
+            value={
+              splits.length > 0
+                ? `### ${startDate} - ${secondsToBiggerTime(
+                    splits[0].total / 1000
+                  )}\nZone|Split|Time\n--|--|--\n${markdownTable.join("\n")}`
+                : ""
+            }
+          />
+          <LogTextArea
+            value={
+              splits.length > 0
+                ? `${startDate}\t\t${secondsToBiggerTime(
+                    splits[0].total / 1000
+                  )}\t${
+                    splits[0].total / 1000
+                  }\nZone\tLevel\tSplit\tTime\n${logCSV.join("\n")}`
+                : ""
+            }
+          />
+        </div>
+      </ControlBar>
       <PageColumns>
         <div>
           <ThreeColumn>
@@ -293,14 +344,6 @@ export default function PoeTimer() {
               <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
             </ThreeColumn>
           ))}
-          {splits.length > 0 && (
-            <textarea
-              style={{ marginTop: "1em", width: "350px", height: "60px" }}
-              value={`### ${startDate} - ${secondsToBiggerTime(
-                splits[0].total / 1000
-              )}\nZone|Split|Time\n--|--|--\n${markdownTable.join("\n")}`}
-            />
-          )}
         </div>
         <div>
           <ThreeColumn>

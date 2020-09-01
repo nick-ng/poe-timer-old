@@ -34,6 +34,22 @@ const getEvent = (line) => {
         data: `${player}: ${level}`,
       };
     }
+    // Incoming whispers
+    if (line.match(/] @From (<.{3,6}> )?[\w_]+: /)) {
+      const name = line
+        .replace(/^.*] @From (<.{3,6}> )?/, "")
+        .replace(/: .*$/, "");
+      const message = line.replace(/^.*] @From (<.{3,6}> )?[\w_]+: /, "");
+
+      return {
+        type: "whisper",
+        details: {
+          name,
+          message,
+        },
+        data: `${name} says: ${message}`,
+      };
+    }
     // Don't send for now
     if (
       ignoreAMid.some((subStr) => line.includes(subStr)) ||

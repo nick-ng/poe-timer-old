@@ -6,6 +6,8 @@ import io from "socket.io-client";
 import { secondsToBiggerTime } from "./utils";
 import EventItem from "./event-item";
 import { LogTextArea } from "./log-combiner";
+import WhisperDisplay from "./whisper-display";
+import WhisperVoice from "./whisper-voice";
 
 const SPLIT_IGNORE_LIST = "POE_SPLIT_IGNORE_LIST";
 const PLAYER_NAME = "POE_PLAYER_NAME";
@@ -452,6 +454,8 @@ export default function PoeTimer() {
             })}
         </div>
       </PageColumns>
+      <WhisperDisplay allEvents={allEvents} />
+      <WhisperVoice event={allEvents[0]} />
     </div>
   );
 }

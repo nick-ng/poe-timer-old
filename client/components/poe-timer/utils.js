@@ -107,3 +107,23 @@ export const parseLogString = (logString) => {
       };
     });
 };
+
+export const parseTradeMessage = (message) => {
+  const tradeInfo = {
+    item: null,
+    price: null,
+    stashTab: null,
+    left: null,
+    top: null,
+  };
+
+  if (
+    message.match(/^hi, i would like to buy your .*listed for .* \(stash tab /i)
+  ) {
+    // pathofexile.com/trade: Hi, I would like to buy your Tabula Rasa Simple Robe listed for 25 chaos in Standard (stash tab "Arm"; position: left 5, top 7)
+  } else if (message.match(/^wtb .*listed for .* \(stash /i)) {
+    // poeapp.com: wtb Tabula Rasa Simple Robe listed for 25 Chaos Orb in Standard (stash "STONKS"; left 1, top 1)
+  }
+
+  return tradeInfo;
+};

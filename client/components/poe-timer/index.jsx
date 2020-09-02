@@ -54,7 +54,7 @@ const LEVEL_MILESTONES = [
 const PageColumns = styled.div`
   margin-top: 1em;
   display: grid;
-  grid-template-columns: 3fr 2fr 3fr;
+  grid-template-columns: 3fr 2fr 4fr;
   gap: 0.5em;
 
   & > * {
@@ -67,30 +67,6 @@ const ControlBar = styled.div`
   display: grid;
   grid-template-columns: auto auto;
   gap: 1em;
-`;
-
-const ThreeColumn = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 2em 0.2em;
-
-  div {
-    padding: 0.1em 0.2em;
-  }
-`;
-
-const Bold = styled.div`
-  font-weight: bold;
-`;
-
-const BoldRight = styled.div`
-  font-weight: bold;
-  text-align: right;
-`;
-
-const Right = styled.div`
-  font-family: Consolas, monospace;
-  text-align: right;
 `;
 
 const nextSplit = (splits, event) => {
@@ -123,7 +99,6 @@ export default function PoeTimer() {
   const [startTimestamp, setStartTimestamp] = useState(
     parseInt(localStorage.getItem(START_TIMESTAMP) || 0, 10)
   );
-  const [nowTimestamp, setNowTimestamp] = useState(Date.now());
   const [playerName, setPlayerName] = useState(
     localStorage.getItem(PLAYER_NAME) || ""
   );
@@ -157,15 +132,9 @@ export default function PoeTimer() {
       setNewestEvent(data);
     });
 
-    // set time updater
-    const intervalId = setInterval(() => {
-      setNowTimestamp(Date.now());
-    }, 500);
-
     return () => {
       // unregister socket
       socket.off("clientLine");
-      clearInterval(intervalId);
     };
   }, []);
 
@@ -349,7 +318,12 @@ export default function PoeTimer() {
           <SplitsTable splits={splits} splitName="Zone" />
         </div>
         <div>
-          <SplitsTable splits={splitsOther} splitName="Other" positiveEdge />
+          <SplitsTable
+            splits={splitsOther}
+            splitName="Other"
+            positiveEdge
+            hideSplit
+          />
         </div>
         <div
           style={{

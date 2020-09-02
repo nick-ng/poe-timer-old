@@ -25,6 +25,7 @@ export default function SplitsTable({
   splits,
   splitName,
   positiveEdge = false,
+  hideSplit = false,
 }) {
   const [nowTimestamp, setNowTimestamp] = useState(Date.now());
 
@@ -43,7 +44,7 @@ export default function SplitsTable({
       <thead>
         <tr>
           <th style={{ textAlign: "left" }}>{splitName}</th>
-          <th style={{ textAlign: "right" }}>Split</th>
+          {!hideSplit && <th style={{ textAlign: "right" }}>Split</th>}
           <th style={{ textAlign: "right" }}>Time</th>
         </tr>
       </thead>
@@ -51,14 +52,16 @@ export default function SplitsTable({
         {positiveEdge && splits.length > 0 && (
           <tr>
             <td>Now</td>
-            <td
-              style={{
-                textAlign: "right",
-                fontFamily: "Consolas, monospace",
-              }}
-            >
-              {msToBiggerTime(nowTimestamp - splits[0].timestamp)}
-            </td>
+            {!hideSplit && (
+              <td
+                style={{
+                  textAlign: "right",
+                  fontFamily: "Consolas, monospace",
+                }}
+              >
+                {msToBiggerTime(nowTimestamp - splits[0].timestamp)}
+              </td>
+            )}
             <td
               style={{
                 textAlign: "right",
@@ -96,14 +99,16 @@ export default function SplitsTable({
           return (
             <tr>
               <td>{split.data}</td>
-              <td
-                style={{
-                  textAlign: "right",
-                  fontFamily: "Consolas, monospace",
-                }}
-              >
-                {msToBiggerTime(delta)}
-              </td>
+              {!hideSplit && (
+                <td
+                  style={{
+                    textAlign: "right",
+                    fontFamily: "Consolas, monospace",
+                  }}
+                >
+                  {msToBiggerTime(delta)}
+                </td>
+              )}
               <td
                 style={{
                   textAlign: "right",

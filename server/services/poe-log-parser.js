@@ -34,6 +34,18 @@ const getEvent = (line) => {
         data: `${player}: ${level}`,
       };
     }
+    // Act 5 completion
+    if (
+      line.includes(
+        "] : You have been permanently weakened by Kitava's cruel affliction. You now have -30% to all Resistances."
+      )
+    ) {
+      return {
+        type: "kitava",
+        details: 1,
+        data: "Act 5 Kitava",
+      };
+    }
     // Incoming whispers
     if (line.match(/] @From (<.{3,6}> )?[\w_]+: /)) {
       const name = line

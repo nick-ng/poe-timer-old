@@ -92,6 +92,21 @@ const Right = styled.div`
   text-align: right;
 `;
 
+const nextSplit = (splits, event) => {
+  if (splits.length > 0) {
+    const timestamps = splits.map((split) => split.timestamp);
+    return {
+      delta: event.timestamp - Math.max(...timestamps),
+      total: event.timestamp - Math.min(...timestamps),
+    };
+  }
+
+  return {
+    delta: 0,
+    total: 0,
+  };
+};
+
 export default function PoeTimer() {
   const [allEvents, setAllEvents] = useState([]);
   const [newestEvent, setNewestEvent] = useState({
@@ -159,7 +174,6 @@ export default function PoeTimer() {
     }
     const fullEvent = `${newestEvent.type}-${newestEvent.data}`;
     if (newestEvent.type === "enter") {
-      const fullerEvent = `${fullEvent}-${playerLevel}`;
       const reCountZone =
         ALWAYS_COUNT_ZONES.includes(newestEvent.details) ||
         splits.every(
@@ -168,23 +182,7 @@ export default function PoeTimer() {
             playerLevel - split.playerLevel > levelThreshold
         );
       if (!splitIgnoreList.includes(fullEvent) && reCountZone) {
-        let delta = 0;
-        let total = 0;
-        if (splits.length > 0) {
-          delta = newestEvent.timestamp - splits[0].timestamp;
-          total = newestEvent.timestamp - splits[splits.length - 1].timestamp;
-        } else {
-          setSplitsLevel([
-            {
-              details: {
-                level: playerLevel,
-              },
-              delta: 0,
-              total: 0,
-              timestamp: newestEvent.timestamp,
-            },
-          ]);
-        }
+        const { delta, total } = nextSplit(splits, newestEvent);
         setSplits([
           {
             ...newestEvent,
@@ -193,11 +191,39 @@ export default function PoeTimer() {
             data: `${newestEvent.data.replace("The ", "")} (${playerLevel})`,
             delta,
             total,
-            fullerEvent,
+            fullerEvent: `${fullEvent}-${playerLevel}`,
           },
           ...splits,
         ]);
       }
+
+      if (splits.length === 0) {
+        setSplitsLevel([
+          {
+            details: {
+              level: playerLevel,
+            },
+            delta: 0,
+            total: 0,
+            timestamp: newestEvent.timestamp,
+          },
+        ]);
+      }
+    }
+    if (newestEvent.type === "kitava") {
+      const { delta, total } = nextSplit(splits, newestEvent);
+      setSplits([
+        {
+          ...newestEvent,
+          playerLevel,
+          zone: `Act 5 Kitava`,
+          data: `Act 5 Kitava (${playerLevel})`,
+          delta,
+          total,
+          fullerEvent: `Act 5 Kitava-${playerLevel}`,
+        },
+        ...splits,
+      ]);
     }
     if (newestEvent.type === "level") {
       const { details } = newestEvent;
@@ -207,14 +233,7 @@ export default function PoeTimer() {
       }
 
       if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
-        let delta = 0;
-        let total = 0;
-        if (splitsLevel.length > 0) {
-          delta = newestEvent.timestamp - splitsLevel[0].timestamp;
-          total =
-            newestEvent.timestamp -
-            splitsLevel[splitsLevel.length - 1].timestamp;
-        }
+        const { delta, total } = nextSplit(splitsLevel, newestEvent);
 
         setSplitsLevel([
           {

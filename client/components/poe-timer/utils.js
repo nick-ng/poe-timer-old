@@ -82,6 +82,10 @@ export const secondsToBiggerTime = (seconds) => {
   ].join(":");
 };
 
+export const msToBiggerTime = (ms) => {
+  return secondsToBiggerTime(ms / 1000);
+};
+
 export const biggerTimeToSeconds = (biggerTime) => {
   const [hourString, minuteString, secondString] = biggerTime.trim().split(":");
   const hours = parseInt(hourString, 10);

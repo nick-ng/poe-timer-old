@@ -6,6 +6,7 @@ import io from "socket.io-client";
 import { secondsToBiggerTime } from "./utils";
 import EventItem from "./event-item";
 import { LogTextArea } from "./log-combiner";
+import SplitsTable from "./splits-table";
 import WhisperDisplay from "./whisper-display";
 import WhisperVoice from "./whisper-voice";
 
@@ -115,7 +116,7 @@ export default function PoeTimer() {
     data: null,
   });
   const [splits, setSplits] = useState([]);
-  const [splitsLevel, setSplitsLevel] = useState([]);
+  const [splitsOther, setSplitsOther] = useState([]);
   const [splitIgnoreList, setSplitIgnoreList] = useState(
     JSON.parse(localStorage.getItem(SPLIT_IGNORE_LIST) || "[]")
   );
@@ -136,7 +137,7 @@ export default function PoeTimer() {
 
   const reloadEvents = (start = 0) => {
     setSplits([]);
-    setSplitsLevel([]);
+    setSplitsOther([]);
     setAllEvents([]);
     setPlayerLevel(1);
     fetch(`/clienttxt?start=${start}`);
@@ -198,11 +199,9 @@ export default function PoeTimer() {
       }
 
       if (splits.length === 0) {
-        setSplitsLevel([
+        setSplitsOther([
           {
-            details: {
-              level: playerLevel,
-            },
+            data: "Start",
             delta: 0,
             total: 0,
             timestamp: newestEvent.timestamp,
@@ -212,17 +211,14 @@ export default function PoeTimer() {
     }
     if (newestEvent.type === "kitava") {
       const { delta, total } = nextSplit(splits, newestEvent);
-      setSplits([
+      setSplitsOther([
         {
-          ...newestEvent,
-          playerLevel,
-          zone: `Act 5 Kitava`,
-          data: `Act 5 Kitava (${playerLevel})`,
+          data: `Act 5 Kitava`,
           delta,
           total,
-          fullerEvent: `Act 5 Kitava-${playerLevel}`,
+          timestamp: newestEvent.timestamp,
         },
-        ...splits,
+        ...splitsOther,
       ]);
     }
     if (newestEvent.type === "level") {
@@ -233,15 +229,16 @@ export default function PoeTimer() {
       }
 
       if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
-        const { delta, total } = nextSplit(splitsLevel, newestEvent);
+        const { delta, total } = nextSplit(splitsOther, newestEvent);
 
-        setSplitsLevel([
+        setSplitsOther([
           {
-            ...newestEvent,
+            data: `Level ${details.level}`,
             delta,
             total,
+            timestamp: newestEvent.timestamp,
           },
-          ...splitsLevel,
+          ...splitsOther,
         ]);
       }
     }
@@ -349,62 +346,10 @@ export default function PoeTimer() {
       </ControlBar>
       <PageColumns>
         <div>
-          <ThreeColumn>
-            <Bold>Zone</Bold>
-            <BoldRight>Split</BoldRight>
-            <BoldRight>Time</BoldRight>
-          </ThreeColumn>
-          {splits.length > 0 && (
-            <ThreeColumn style={{ backgroundColor: "Gainsboro" }}>
-              <div>Now</div>
-              <Right>
-                {secondsToBiggerTime(
-                  (nowTimestamp - splits[0].timestamp) / 1000
-                )}
-              </Right>
-              <Right>
-                {secondsToBiggerTime(
-                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
-                )}
-              </Right>
-            </ThreeColumn>
-          )}
-          {splits.map((split) => (
-            <ThreeColumn key={split.timestamp}>
-              <div>{split.data}</div>
-              <Right>{secondsToBiggerTime(split.delta / 1000)}</Right>
-              <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
-            </ThreeColumn>
-          ))}
+          <SplitsTable splits={splits} splitName="Zone" />
         </div>
         <div>
-          <ThreeColumn>
-            <Bold>Level</Bold>
-            <BoldRight>Split</BoldRight>
-            <BoldRight>Time</BoldRight>
-          </ThreeColumn>
-          {splits.length > 0 && (
-            <ThreeColumn style={{ backgroundColor: "Gainsboro" }}>
-              <div>Now</div>
-              <Right>
-                {secondsToBiggerTime(
-                  (nowTimestamp - splits[0].timestamp) / 1000
-                )}
-              </Right>
-              <Right>
-                {secondsToBiggerTime(
-                  (nowTimestamp - splits[splits.length - 1].timestamp) / 1000
-                )}
-              </Right>
-            </ThreeColumn>
-          )}
-          {splitsLevel.map((split) => (
-            <ThreeColumn key={split.timestamp}>
-              <div>{split.details.level}</div>
-              <Right>{secondsToBiggerTime(split.delta / 1000)}</Right>
-              <Right>{secondsToBiggerTime(split.total / 1000)}</Right>
-            </ThreeColumn>
-          ))}
+          <SplitsTable splits={splitsOther} splitName="Other" positiveEdge />
         </div>
         <div
           style={{

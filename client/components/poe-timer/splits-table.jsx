@@ -13,6 +13,7 @@ const MainTable = styled.table`
 
   tbody tr:first-child {
     background-color: Gainsboro;
+    font-size: 1.3em;
   }
 
   th,

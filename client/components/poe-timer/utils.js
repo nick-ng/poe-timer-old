@@ -1,6 +1,6 @@
 import moment from "moment";
 
-export const DATE_FORMAT = "YYYY/MM/DD HH:mm:ss";
+import { DATE_FORMAT } from "./settings";
 
 export const getEvent = (line) => {
   try {

@@ -3,6 +3,11 @@ import moment from "moment";
 import styled from "styled-components";
 import io from "socket.io-client";
 
+import {
+  ALWAYS_COUNT_ZONES,
+  DISPLAY_DATE_FORMAT,
+  LEVEL_MILESTONES,
+} from "./settings";
 import { secondsToBiggerTime } from "./utils";
 import EventItem from "./event-item";
 import { LogTextArea } from "./log-combiner";
@@ -15,46 +20,10 @@ const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
 const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
 
-const DISPLAY_DATE_FORMAT = "YYYY/MM/DD hh:mm a";
-const ALWAYS_COUNT_ZONES = [
-  "Lioneye's Watch",
-  "Forest Encampment",
-  "Sarn Encampment",
-  "Highgate",
-  "Overseer's Tower",
-  "Bridge Encampment",
-  "Oriath Docks",
-  " Hideout",
-  "Aspirants' Plaza",
-  "Aspirant's Trial",
-];
-const LEVEL_MILESTONES = [
-  10,
-  20,
-  30,
-  40,
-  50,
-  60,
-  70,
-  80,
-  85,
-  90,
-  91,
-  92,
-  93,
-  94,
-  95,
-  96,
-  97,
-  98,
-  99,
-  100,
-];
-
 const PageColumns = styled.div`
   margin-top: 1em;
   display: grid;
-  grid-template-columns: 3fr 2fr 4fr;
+  grid-template-columns: 4fr 2fr 4fr;
   gap: 0.5em;
 
   & > * {
@@ -67,6 +36,16 @@ const ControlBar = styled.div`
   display: grid;
   grid-template-columns: auto auto;
   gap: 1em;
+`;
+
+const ControlButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  label {
+    margin-left: 0.5em;
+  }
 `;
 
 const nextSplit = (splits, event) => {
@@ -97,7 +76,7 @@ export default function PoeTimer() {
     JSON.parse(localStorage.getItem(SPLIT_IGNORE_LIST) || "[]")
   );
   const [startTimestamp, setStartTimestamp] = useState(
-    parseInt(localStorage.getItem(START_TIMESTAMP) || 0, 10)
+    parseInt(localStorage.getItem(START_TIMESTAMP) || Date.now(), 10)
   );
   const [playerName, setPlayerName] = useState(
     localStorage.getItem(PLAYER_NAME) || ""
@@ -262,33 +241,38 @@ export default function PoeTimer() {
       <ControlBar>
         <div>
           <p>{`Starting from ${startDate}`}</p>
-          <button onClick={() => reloadEvents(startTimestamp)}>
-            {`Reload from ${startDate}`}
-          </button>
-          <button onClick={() => reloadEvents(0)}>Reload everything</button>
-          <button
-            onClick={() => {
-              setStartTimestamp(Date.now());
-            }}
-          >
-            Change start to now
-          </button>
-          <button
-            onClick={() => {
-              setStartTimestamp(0);
-            }}
-          >
-            Change start to zero
-          </button>
-          <label>
-            Player:{" "}
-            <input
-              value={playerName}
-              onChange={(e) => {
-                setPlayerName(e.target.value);
+          <ControlButtonContainer>
+            <button onClick={() => reloadEvents(startTimestamp)}>
+              {`Reload from ${startDate}`}
+            </button>
+            <button
+              onClick={() => {
+                const now = Date.now();
+                setStartTimestamp(now);
+                reloadEvents(now);
               }}
-            />
-          </label>
+            >
+              Now
+            </button>
+            <button
+              onClick={() => {
+                const hourAgo = startTimestamp - 1000 * 60 * 60;
+                setStartTimestamp(hourAgo);
+                reloadEvents(hourAgo);
+              }}
+            >
+              -1 hour
+            </button>
+            {/* <label>
+              Player:{" "}
+              <input
+                value={playerName}
+                onChange={(e) => {
+                  setPlayerName(e.target.value);
+                }}
+              />
+            </label> */}
+          </ControlButtonContainer>
         </div>
         <div>
           <LogTextArea

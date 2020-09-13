@@ -6,6 +6,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  font-size: 0.8em;
 
   &:nth-child(even) {
     background-color: Gainsboro;

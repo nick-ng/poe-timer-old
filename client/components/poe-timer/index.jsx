@@ -7,8 +7,9 @@ import {
   ALWAYS_COUNT_ZONES,
   DISPLAY_DATE_FORMAT,
   LEVEL_MILESTONES,
+  ZONE_BENCHMARKS,
 } from "./settings";
-import { secondsToBiggerTime } from "./utils";
+import { isWithin, secondsToBiggerTime } from "./utils";
 import EventItem from "./event-item";
 import { LogTextArea } from "./log-combiner";
 import SplitsTable from "./splits-table";
@@ -23,7 +24,7 @@ const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
 const PageColumns = styled.div`
   margin-top: 1em;
   display: grid;
-  grid-template-columns: 4fr 2fr 4fr;
+  grid-template-columns: 4fr 3fr 4fr;
   gap: 0.5em;
 
   & > * {
@@ -123,6 +124,7 @@ export default function PoeTimer() {
     }
     const fullEvent = `${newestEvent.type}-${newestEvent.data}`;
     if (newestEvent.type === "enter") {
+      const zone = newestEvent.data.replace("The ", "");
       const reCountZone =
         ALWAYS_COUNT_ZONES.includes(newestEvent.details) ||
         splits.every(
@@ -136,13 +138,34 @@ export default function PoeTimer() {
           {
             ...newestEvent,
             playerLevel,
-            zone: newestEvent.data.replace("The ", ""),
-            data: `${newestEvent.data.replace("The ", "")} (${playerLevel})`,
+            zone,
+            data: `${zone} (${playerLevel})`,
             delta,
             total,
             fullerEvent: `${fullEvent}-${playerLevel}`,
           },
           ...splits,
+        ]);
+      }
+
+      const zoneBenchmark = ZONE_BENCHMARKS.find(
+        (benchmark) =>
+          benchmark.zone === zone && isWithin(playerLevel, benchmark.levelRange)
+      );
+      if (zoneBenchmark) {
+        const { delta, total } = nextSplit(splitsOther, newestEvent);
+        const difference = total / 1000 - zoneBenchmark.benchmark;
+        const difference2 = (difference / 60).toFixed(1);
+        const sign = difference < 0 ? "-" : "+";
+        setSplitsOther([
+          {
+            data: `${zone} (${sign}${difference2})`,
+            details: zoneBenchmark.id,
+            delta,
+            total,
+            timestamp: newestEvent.timestamp,
+          },
+          ...splitsOther,
         ]);
       }
 
@@ -176,19 +199,18 @@ export default function PoeTimer() {
         setPlayerLevel(details.level);
       }
 
-      if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
-        const { delta, total } = nextSplit(splitsOther, newestEvent);
-
-        setSplitsOther([
-          {
-            data: `Level ${details.level}`,
-            delta,
-            total,
-            timestamp: newestEvent.timestamp,
-          },
-          ...splitsOther,
-        ]);
-      }
+      // if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
+      // const { delta, total } = nextSplit(splitsOther, newestEvent);
+      //   setSplitsOther([
+      //     {
+      //       data: `Level ${details.level}`,
+      //       delta,
+      //       total,
+      //       timestamp: newestEvent.timestamp,
+      //     },
+      //     ...splitsOther,
+      //   ]);
+      // }
     }
   }, [newestEvent]);
 

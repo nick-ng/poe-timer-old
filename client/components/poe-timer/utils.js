@@ -2,6 +2,9 @@ import moment from "moment";
 
 import { DATE_FORMAT } from "./settings";
 
+export const isWithin = (value, range) =>
+  value >= range[0] && value <= range[1];
+
 export const getEvent = (line) => {
   try {
     if (line.includes("] : You have entered ")) {

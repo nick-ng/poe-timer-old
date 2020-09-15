@@ -21,6 +21,7 @@ const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
 const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
 const BEST_ZONE_SPLITS = "POE_BEST_ZONE_SPLITS";
+const BUILD_NAME = "POE_BUILD_NAME";
 
 const PageColumns = styled.div`
   margin-top: 1em;
@@ -40,13 +41,17 @@ const ControlBar = styled.div`
   gap: 1em;
 `;
 
-const ControlButtonContainer = styled.div`
+const ControlsContainer = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
 
   label {
     margin-left: 0.5em;
+  }
+
+  & + & {
+    margin-top: 0.2em;
   }
 `;
 
@@ -94,6 +99,9 @@ export default function PoeTimer() {
   );
   const [socketConnected, setSocketConnected] = useState(false);
   const [eventFilter, setEventFilter] = useState("");
+  const [buildName, setBuildName] = useState(
+    localStorage.getItem(BUILD_NAME) || ""
+  );
 
   const reloadEvents = (start = 0) => {
     setSplits([]);
@@ -162,7 +170,7 @@ export default function PoeTimer() {
           !splitsBenchmark.some((split) => split?.details?.id === benchmark?.id)
       );
       if (zoneBenchmark) {
-        const { delta, total } = nextSplit(splitsOther, newestEvent);
+        const { delta, total } = nextSplit(splitsBenchmark, newestEvent);
         const newBestZoneSplits = {
           ...bestZoneSplits,
         };
@@ -174,22 +182,37 @@ export default function PoeTimer() {
         const sign = deltaDifference < 0 ? "" : "+";
         let progress = `${sign}${deltaDifference}`;
 
-        if (bestZoneSplits[zoneBenchmark.id]) {
-          newBestZoneSplits[zoneBenchmark.id] = {
-            delta: Math.min(bestZoneSplits[zoneBenchmark.id].delta, delta),
-            total: Math.min(bestZoneSplits[zoneBenchmark.id].total, total),
-          };
+        if (bestZoneSplits[buildName]) {
+          if (bestZoneSplits[buildName][zoneBenchmark.id]) {
+            newBestZoneSplits[buildName][zoneBenchmark.id] = {
+              delta: Math.min(
+                bestZoneSplits[buildName][zoneBenchmark.id].delta,
+                delta
+              ),
+              total: Math.min(
+                bestZoneSplits[buildName][zoneBenchmark.id].total,
+                total
+              ),
+            };
 
-          const deltaDifference2 = (
-            (delta - bestZoneSplits[zoneBenchmark.id].delta) /
-            60000
-          ).toFixed(1);
-          const sign2 = deltaDifference2 < 0 ? "" : "+";
-          progress = `${sign2}${deltaDifference2}, ${progress}`;
+            const deltaDifference2 = (
+              (delta - bestZoneSplits[buildName][zoneBenchmark.id].delta) /
+              60000
+            ).toFixed(1);
+            const sign2 = deltaDifference2 < 0 ? "" : "+";
+            progress = `${sign2}${deltaDifference2}, ${progress}`;
+          } else {
+            newBestZoneSplits[buildName][zoneBenchmark.id] = {
+              delta,
+              total,
+            };
+          }
         } else {
-          newBestZoneSplits[zoneBenchmark.id] = {
-            delta,
-            total,
+          newBestZoneSplits[buildName] = {
+            [zoneBenchmark.id]: {
+              delta,
+              total,
+            },
           };
         }
 
@@ -277,6 +300,9 @@ export default function PoeTimer() {
   useEffect(() => {
     localStorage.setItem(LEVEL_THRESHOLD, levelThreshold);
   }, [levelThreshold]);
+  useEffect(() => {
+    localStorage.setItem(BUILD_NAME, buildName);
+  }, [buildName]);
 
   const startDate = moment(startTimestamp).format(DISPLAY_DATE_FORMAT);
   const markdownTable = [
@@ -308,7 +334,7 @@ export default function PoeTimer() {
       <ControlBar>
         <div>
           <p>{`Starting from ${startDate}`}</p>
-          <ControlButtonContainer>
+          <ControlsContainer>
             <button onClick={() => reloadEvents(startTimestamp)}>
               {`Reload from ${startDate}`}
             </button>
@@ -339,7 +365,23 @@ export default function PoeTimer() {
                 reloadEvents(startTimestamp);
               }}
             >
-              Update Best Splits
+              Update best splits
+            </button>
+            <button
+              onClick={() => {
+                if (confirm(`Really clear best splits for ${buildName}?`)) {
+                  const newZoneSplits = { ...bestZoneSplits };
+                  delete newZoneSplits[buildName];
+                  localStorage.setItem(
+                    BEST_ZONE_SPLITS,
+                    JSON.stringify(newZoneSplits)
+                  );
+                  setBestZoneSplits(newZoneSplits);
+                  reloadEvents(startTimestamp);
+                }
+              }}
+            >
+              {`Clear ${buildName} splits`}
             </button>
             {/* <label>
               Player:{" "}
@@ -350,7 +392,38 @@ export default function PoeTimer() {
                 }}
               />
             </label> */}
-          </ControlButtonContainer>
+          </ControlsContainer>
+          <ControlsContainer>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                reloadEvents(startTimestamp);
+              }}
+            >
+              <label>
+                Build Name:{" "}
+                <input
+                  value={buildName}
+                  onChange={(e) => {
+                    setBuildName(e.target.value.replace(/[^\w]/g, "_"));
+                  }}
+                />
+              </label>
+            </form>
+            <select
+              value={buildName}
+              onChange={(e) => {
+                setBuildName(e.target.value);
+                reloadEvents(startTimestamp);
+              }}
+            >
+              {Object.keys(bestZoneSplits).map((build) => (
+                <option key={build} value={build}>
+                  {build}
+                </option>
+              ))}
+            </select>
+          </ControlsContainer>
         </div>
         <div>
           <LogTextArea

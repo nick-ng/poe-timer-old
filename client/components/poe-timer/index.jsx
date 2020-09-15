@@ -46,12 +46,8 @@ const ControlsContainer = styled.div`
   flex-direction: row;
   align-items: center;
 
-  label {
-    margin-left: 0.5em;
-  }
-
   & + & {
-    margin-top: 0.2em;
+    margin-top: 0.3em;
   }
 `;
 
@@ -372,6 +368,11 @@ export default function PoeTimer() {
                 if (confirm(`Really clear best splits for ${buildName}?`)) {
                   const newZoneSplits = { ...bestZoneSplits };
                   delete newZoneSplits[buildName];
+                  if (Object.keys(newZoneSplits).length > 0) {
+                    setBuildName(Object.keys(newZoneSplits)[0]);
+                  } else {
+                    setBuildName(Object.keys(""));
+                  }
                   localStorage.setItem(
                     BEST_ZONE_SPLITS,
                     JSON.stringify(newZoneSplits)

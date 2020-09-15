@@ -9,7 +9,6 @@ export const ALWAYS_COUNT_ZONES = [
   "Overseer's Tower",
   "Bridge Encampment",
   "Oriath Docks",
-  " Hideout",
   "Aspirants' Plaza",
   "Aspirant's Trial",
 ];
@@ -42,60 +41,71 @@ export const ZONE_BENCHMARKS = [
     id: "ledge_1",
     zone: "Ledge",
     levelRange: [0, 20],
-    benchmark: 7.5 * 60,
+    total: 7.5 * 60,
   },
   {
     id: "prisoners_gate_1",
     zone: "Prisoner's Gate",
     levelRange: [0, 20],
-    benchmark: 15 * 60,
+    total: 15 * 60,
   },
   {
     id: "southern_forest_1",
     zone: "Southern Forest",
     levelRange: [0, 30],
-    benchmark: 25 * 60,
+    total: 25 * 60,
   },
   {
     id: "vaal_ruins_1",
     zone: "Vaal Ruins",
     levelRange: [0, 30],
-    benchmark: 33 * 60,
+    total: 33 * 60,
   },
   {
     id: "city_of_sarn_1",
     zone: "City of Sarn",
     levelRange: [0, 40],
-    benchmark: 44 * 60,
+    total: 44 * 60,
   },
   {
     id: "ebony_barracks_1",
     zone: "Ebony Barracks",
     levelRange: [0, 40],
-    benchmark: 55 * 60,
+    total: 55 * 60,
   },
   {
     id: "aqueduct_1",
     zone: "Aqueduct",
     levelRange: [0, 40],
-    benchmark: 70 * 60,
+    total: 70 * 60,
   },
   {
     id: "belly_1",
     zone: "Belly of the Beast Level 1",
     levelRange: [0, 50],
-    benchmark: 90 * 60,
+    total: 90 * 60,
   },
   {
     id: "slave_pens_1",
     zone: "Slave Pens",
     levelRange: [0, 50],
-    benchmark: (60 + 42) * 60,
+    total: (60 + 42) * 60,
   },
   {
     id: "lioneyes_watch_2",
     zone: "Slave Pens",
     levelRange: [40, 100],
-    benchmark: 120 * 60,
+    total: 120 * 60,
   },
-];
+].map((benchmark, i, benchmarks) => {
+  if (i > 0) {
+    return {
+      ...benchmark,
+      delta: benchmark.total - benchmarks[i - 1].total,
+    };
+  }
+  return {
+    ...benchmark,
+    delta: benchmark.total,
+  };
+});

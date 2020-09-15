@@ -27,6 +27,7 @@ export default function SplitsTable({
   splitName,
   positiveEdge = false,
   hideSplit = false,
+  nextSplit = "Now",
 }) {
   const [nowTimestamp, setNowTimestamp] = useState(Date.now());
 
@@ -52,7 +53,7 @@ export default function SplitsTable({
       <tbody>
         {positiveEdge && splits.length > 0 && (
           <tr>
-            <td>Now</td>
+            <td>{nextSplit}</td>
             {!hideSplit && (
               <td
                 style={{

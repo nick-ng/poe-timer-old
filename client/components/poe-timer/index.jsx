@@ -20,6 +20,7 @@ const SPLIT_IGNORE_LIST = "POE_SPLIT_IGNORE_LIST";
 const PLAYER_NAME = "POE_PLAYER_NAME";
 const START_TIMESTAMP = "POE_START_TIMESTAMP";
 const LEVEL_THRESHOLD = "POE_LEVEL_THRESHOLD";
+const BEST_ZONE_SPLITS = "POE_BEST_ZONE_SPLITS";
 
 const PageColumns = styled.div`
   margin-top: 1em;
@@ -73,11 +74,15 @@ export default function PoeTimer() {
   });
   const [splits, setSplits] = useState([]);
   const [splitsOther, setSplitsOther] = useState([]);
+  const [splitsBenchmark, setSplitsBenchmark] = useState([]);
   const [splitIgnoreList, setSplitIgnoreList] = useState(
     JSON.parse(localStorage.getItem(SPLIT_IGNORE_LIST) || "[]")
   );
   const [startTimestamp, setStartTimestamp] = useState(
     parseInt(localStorage.getItem(START_TIMESTAMP) || Date.now(), 10)
+  );
+  const [bestZoneSplits, setBestZoneSplits] = useState(
+    JSON.parse(localStorage.getItem(BEST_ZONE_SPLITS) || "{}")
   );
   const [playerName, setPlayerName] = useState(
     localStorage.getItem(PLAYER_NAME) || ""
@@ -93,6 +98,7 @@ export default function PoeTimer() {
   const reloadEvents = (start = 0) => {
     setSplits([]);
     setSplitsOther([]);
+    setSplitsBenchmark([]);
     setAllEvents([]);
     setPlayerLevel(1);
     fetch(`/clienttxt?start=${start}`);
@@ -126,7 +132,8 @@ export default function PoeTimer() {
     if (newestEvent.type === "enter") {
       const zone = newestEvent.data.replace("The ", "");
       const reCountZone =
-        ALWAYS_COUNT_ZONES.includes(newestEvent.details) ||
+        zone.includes(" Hideout") ||
+        ALWAYS_COUNT_ZONES.includes(zone) ||
         splits.every(
           (split) =>
             split.details !== newestEvent.details ||
@@ -150,27 +157,65 @@ export default function PoeTimer() {
 
       const zoneBenchmark = ZONE_BENCHMARKS.find(
         (benchmark) =>
-          benchmark.zone === zone && isWithin(playerLevel, benchmark.levelRange)
+          benchmark.zone === zone &&
+          isWithin(playerLevel, benchmark.levelRange) &&
+          !splitsBenchmark.some((split) => split?.details?.id === benchmark?.id)
       );
       if (zoneBenchmark) {
         const { delta, total } = nextSplit(splitsOther, newestEvent);
-        const difference = total / 1000 - zoneBenchmark.benchmark;
-        const difference2 = (difference / 60).toFixed(1);
-        const sign = difference < 0 ? "-" : "+";
-        setSplitsOther([
+        const newBestZoneSplits = {
+          ...bestZoneSplits,
+        };
+
+        const deltaDifference = (
+          (delta / 1000 - zoneBenchmark.delta) /
+          60
+        ).toFixed(1);
+        const sign = deltaDifference < 0 ? "" : "+";
+        let progress = `${sign}${deltaDifference}`;
+
+        if (bestZoneSplits[zoneBenchmark.id]) {
+          newBestZoneSplits[zoneBenchmark.id] = {
+            delta: Math.min(bestZoneSplits[zoneBenchmark.id].delta, delta),
+            total: Math.min(bestZoneSplits[zoneBenchmark.id].total, total),
+          };
+
+          const deltaDifference2 = (
+            (delta - bestZoneSplits[zoneBenchmark.id].delta) /
+            60000
+          ).toFixed(1);
+          const sign2 = deltaDifference2 < 0 ? "" : "+";
+          progress = `${sign2}${deltaDifference2}, ${progress}`;
+        } else {
+          newBestZoneSplits[zoneBenchmark.id] = {
+            delta,
+            total,
+          };
+        }
+
+        setBestZoneSplits(newBestZoneSplits);
+        setSplitsBenchmark([
           {
-            data: `${zone} (${sign}${difference2})`,
-            details: zoneBenchmark.id,
+            data: `${zone} (${progress})`,
+            details: { ...zoneBenchmark },
             delta,
             total,
             timestamp: newestEvent.timestamp,
           },
-          ...splitsOther,
+          ...splitsBenchmark,
         ]);
       }
 
       if (splits.length === 0) {
         setSplitsOther([
+          {
+            data: "Start",
+            delta: 0,
+            total: 0,
+            timestamp: newestEvent.timestamp,
+          },
+        ]);
+        setSplitsBenchmark([
           {
             data: "Start",
             delta: 0,
@@ -199,18 +244,18 @@ export default function PoeTimer() {
         setPlayerLevel(details.level);
       }
 
-      // if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
-      // const { delta, total } = nextSplit(splitsOther, newestEvent);
-      //   setSplitsOther([
-      //     {
-      //       data: `Level ${details.level}`,
-      //       delta,
-      //       total,
-      //       timestamp: newestEvent.timestamp,
-      //     },
-      //     ...splitsOther,
-      //   ]);
-      // }
+      if (rightPlayer && LEVEL_MILESTONES.includes(details.level)) {
+        const { delta, total } = nextSplit(splitsOther, newestEvent);
+        setSplitsOther([
+          {
+            data: `Level ${details.level}`,
+            delta,
+            total,
+            timestamp: newestEvent.timestamp,
+          },
+          ...splitsOther,
+        ]);
+      }
     }
   }, [newestEvent]);
 
@@ -285,6 +330,17 @@ export default function PoeTimer() {
             >
               -1 hour
             </button>
+            <button
+              onClick={() => {
+                localStorage.setItem(
+                  BEST_ZONE_SPLITS,
+                  JSON.stringify(bestZoneSplits)
+                );
+                reloadEvents(startTimestamp);
+              }}
+            >
+              Update Best Splits
+            </button>
             {/* <label>
               Player:{" "}
               <input
@@ -321,12 +377,12 @@ export default function PoeTimer() {
       </ControlBar>
       <PageColumns>
         <div>
-          <SplitsTable splits={splits} splitName="Zone" />
+          <SplitsTable splits={splitsBenchmark} splitName="Zone" positiveEdge />
         </div>
         <div>
           <SplitsTable
-            splits={splitsOther}
-            splitName="Other"
+            splits={splits}
+            splitName="Zone"
             positiveEdge
             hideSplit
           />

@@ -105,6 +105,9 @@ export default function PoeTimer() {
     setSplitsBenchmark([]);
     setAllEvents([]);
     setPlayerLevel(1);
+    setBestZoneSplits(
+      JSON.parse(localStorage.getItem(BEST_ZONE_SPLITS) || "{}")
+    );
     fetch(`/clienttxt?start=${start}`);
   };
 

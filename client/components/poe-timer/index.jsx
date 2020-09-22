@@ -36,8 +36,9 @@ const PageColumns = styled.div`
 `;
 
 const ControlBar = styled.div`
-  display: grid;
-  grid-template-columns: auto auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   gap: 1em;
 `;
 
@@ -429,8 +430,13 @@ export default function PoeTimer() {
             </select>
           </ControlsContainer>
         </div>
+        <iframe
+          src="https://tracker.poe-racing.com/?event=SSF Heist&character=Pux_SixtyThree&size=2"
+          width="200px"
+          height="120px"
+        />
         <div>
-          <LogTextArea
+          {/* <LogTextArea
             value={
               splits.length > 0
                 ? `### ${startDate} - ${secondsToBiggerTime(
@@ -438,7 +444,7 @@ export default function PoeTimer() {
                   )}\nZone|Split|Time\n--|--|--\n${markdownTable.join("\n")}`
                 : ""
             }
-          />
+          /> */}
           <LogTextArea
             value={
               splits.length > 0

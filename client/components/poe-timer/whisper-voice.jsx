@@ -100,7 +100,7 @@ export default function WhisperVoice({ event }) {
       if (voice) {
         utterance.voice = voice;
       }
-      synth.speak(utterance);
+      // synth.speak(utterance);
     }
   }, [phrase]);
 

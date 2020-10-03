@@ -12,10 +12,13 @@ const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
 const poeLogParser = require("./services/poe-log-parser");
 const { processLine } = require("./services/poe-log-parser");
+const { chaosRecipe } = require("./services/poe-stash-tab-fetcher");
 
 const app = express();
 const server = http.createServer(app);
 const io = socketio();
+
+let inventory = {};
 
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -109,6 +112,10 @@ router.get("/clienttxt", (req, res, next) => {
   }
 });
 
+router.get("/api/chaosrecipe", (req, res, next) => {
+  res.json(inventory);
+});
+
 app.use(router);
 
 // serve static files
@@ -119,6 +126,21 @@ app.use(express.static("dist"));
 app.use((req, res) => {
   res.sendFile(path.resolve(__dirname, "../dist/index.html"));
 });
+
+const chaosRecipeRunner = async () => {
+  inventory = await chaosRecipe();
+  console.log("inventory", inventory);
+};
+
+const chaosRecipeTimeout = 5 * 60 * 1000;
+const makeChaosRecipeTimeout = () => {
+  setTimeout(() => {
+    chaosRecipeRunner();
+    makeChaosRecipeTimeout();
+  }, chaosRecipeTimeout);
+};
+chaosRecipeRunner();
+makeChaosRecipeTimeout();
 
 // starting listening
 const port = process.env.PORT || 3000;

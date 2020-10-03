@@ -6,6 +6,7 @@ import css from "./styles.css";
 import Nav from "./components/nav";
 import LogCombiner from "./components/poe-timer/log-combiner";
 import PoeTimer from "./components/poe-timer";
+import ChaosRecipe from "./components/chaos-recipe";
 
 export default function App() {
   return (
@@ -14,11 +15,17 @@ export default function App() {
         <Nav />
         <div className={css.pageContent}>
           <Switch>
+            <R path="/chaosrecipe">
+              <ChaosRecipe />
+            </R>
             <R path="/log-combiner">
               <LogCombiner />
             </R>
-            <R path="/">
+            <R path="/timer">
               <PoeTimer />
+            </R>
+            <R path="/">
+              <div>Hello</div>
             </R>
           </Switch>
         </div>

@@ -32,15 +32,13 @@ export default function ChaosRecipe() {
 
   const render = [];
   const { chaos, regal } = inventory;
-  const counts = [];
   Object.keys(chaos).forEach((slot) => {
     const count = chaos[slot] + regal[slot];
-    counts.push(count);
     render.push({ slot, count });
   });
-  counts.sort();
 
-  const almostCompleteSets = counts[1];
+  const almostCompleteSets =
+    render.length > 1 ? render.sort((a, b) => a.count - b.count)[1] : 0;
 
   return (
     <Container>

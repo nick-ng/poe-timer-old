@@ -8,11 +8,11 @@ const MainTable = styled.table`
   border-collapse: collapse;
 
   tbody tr:nth-child(odd) {
-    background-color: #f0f0f0;
+    background-color: #202020;
   }
 
   tbody tr:first-child {
-    background-color: Gainsboro;
+    background-color: #222222;
     font-size: 1.3em;
   }
 

@@ -6,7 +6,7 @@ import { parseTradeMessage } from "../utils";
 
 const Container = styled.tr`
   &:nth-child(even) {
-    background-color: Gainsboro;
+    background-color: #222222;
   }
 
   td {

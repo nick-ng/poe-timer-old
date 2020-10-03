@@ -60,7 +60,26 @@ const getItemType = (item) => {
   const { typeLine } = item;
 
   if (item.identified) {
-    return { slot: "unknown", count: 0 };
+    return { slot: "identified", count: 0 };
+  }
+
+  if (item.properties) {
+    const { properties } = item;
+    if (properties.some((property) => property.name === "Physical Damage")) {
+      if (
+        twoHandedWeapons.some((a) =>
+          properties[0].name.toLowerCase().includes(a)
+        )
+      ) {
+        return { slot: "weapon", count: 1 };
+      }
+
+      return { slot: "weapon", count: 0.5 };
+    }
+
+    if (properties.some((property) => property.name === "Chance to Block")) {
+      return { slot: "weapon", count: 0.5 };
+    }
   }
 
   if (ring.some((a) => typeLine.toLowerCase().includes(a))) {
@@ -91,19 +110,7 @@ const getItemType = (item) => {
     return { slot: "body", count: 1 };
   }
 
-  const { properties } = item;
-  if (properties[1].name === "Physical Damage") {
-    let count = 0.5;
-
-    if (
-      twoHandedWeapons.some((a) => properties[0].name.toLowerCase().includes(a))
-    ) {
-      count = 1;
-    }
-
-    return { slot: "weapon", count };
-  }
-
+  console.log("unknown-item", item);
   return { slot: "unknown", count: 0 };
 };
 
@@ -114,7 +121,7 @@ const recipeInfo = (item) => {
 
   const { slot, count } = getItemType(item);
 
-  if (slot === "unknown") {
+  if (slot === "unknown" || slot === "identified") {
     return null;
   }
 

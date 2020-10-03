@@ -1,4 +1,5 @@
 import React from "react";
+import styled from "styled-components";
 import { BrowserRouter as Router, Switch, Route as R } from "react-router-dom";
 
 import css from "./styles.css";
@@ -10,7 +11,12 @@ import ChaosRecipe from "./components/chaos-recipe";
 
 export default function App() {
   return (
-    <Router>
+    <Router
+      style={{
+        backgroundColor: "black",
+        color: "white",
+      }}
+    >
       <div className={css.container}>
         <Nav />
         <div className={css.pageContent}>

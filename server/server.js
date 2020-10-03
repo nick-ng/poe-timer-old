@@ -18,7 +18,10 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio();
 
-let inventory = {};
+let inventory = {
+  chaos: { weapon: 0 },
+  regal: { weapon: 0 },
+};
 
 io.on("connection", (socket) => {
   console.log("a user connected");

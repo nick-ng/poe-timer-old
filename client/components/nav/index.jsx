@@ -8,14 +8,14 @@ import css from "./styles.css";
 const Nav = () => (
   <div className={css.navContainer}>
     <Header />
-    <NavLink icon="fa-clock-o" to="/" exact>
+    <NavLink icon="fa-clock-o" to="/timer">
       Timer
     </NavLink>
     <NavLink icon="fa-plus" to="/log-combiner">
       Log Combiner
     </NavLink>
     <NavLink icon="fa-plus" to="/chaosrecipe">
-      Chaos Recipe Helper
+      Chaos Recipe
     </NavLink>
   </div>
 );

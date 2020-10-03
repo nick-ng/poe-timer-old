@@ -9,7 +9,7 @@ const Container = styled.div`
   font-size: 0.8em;
 
   &:nth-child(even) {
-    background-color: Gainsboro;
+    background-color: #222222;
   }
 
   label {

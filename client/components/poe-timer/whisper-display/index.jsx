@@ -17,7 +17,7 @@ const Container = styled.div`
   max-width: 60vw;
   overflow-y: scroll;
   padding: 0.5em;
-  background-color: white;
+  background-color: #eeeeee;
   border-top: 1px solid grey;
   border-right: 1px solid grey;
 `;

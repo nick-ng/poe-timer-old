@@ -4,7 +4,23 @@ import styled from "styled-components";
 const Container = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
 `;
+
+const getColour = (slot) => {
+  switch (slot) {
+    case "body":
+      return { backgroundColor: "#ffffff", color: "#000000" };
+    case "boot":
+      return { backgroundColor: "#0000cc" };
+    case "helm":
+      return { backgroundColor: "#009900" };
+    case "glove":
+      return { backgroundColor: "#cc0000" };
+    default:
+      return { backgroundColor: "#000000" };
+  }
+};
 
 export default function ChaosRecipe() {
   const [inventory, setInventory] = useState({
@@ -42,10 +58,10 @@ export default function ChaosRecipe() {
 
   return (
     <Container>
-      <h1>Chaos Recipe Helper</h1>
+      <h1>Chaos Recipe</h1>
       <div
         style={{
-          color: almostCompleteSets > 5 ? "red" : "grey",
+          color: almostCompleteSets > 5 ? "#ff3333" : "#cccccc",
           fontSize: almostCompleteSets > 5 ? "2em" : "0.7em",
           margin: "1em 0",
         }}
@@ -53,8 +69,18 @@ export default function ChaosRecipe() {
       <div>
         {render
           .sort((a, b) => a.count - b.count)
-          .map((item) => (
-            <div key={item.slot}>{`${item.slot}: ${item.count}`}</div>
+          .map(({ slot, count }) => (
+            <div
+              style={{
+                ...getColour(slot),
+                textTransform: "capitalize",
+                padding: "0.2em",
+                textAlign: "right",
+                borderTop: "1px solid grey",
+                fontSize: `${0.8 + (almostCompleteSets + 1) / (count + 1)}em`,
+              }}
+              key={slot}
+            >{`${slot}: ${count}`}</div>
           ))}
       </div>
     </Container>

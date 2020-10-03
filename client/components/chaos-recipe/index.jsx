@@ -38,7 +38,7 @@ export default function ChaosRecipe() {
   });
 
   const almostCompleteSets =
-    render.length > 1 ? render.sort((a, b) => a.count - b.count)[1] : 0;
+    render.length > 1 ? render.sort((a, b) => a.count - b.count)[1].count : 0;
 
   return (
     <Container>

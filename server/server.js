@@ -129,7 +129,6 @@ app.use((req, res) => {
 
 const chaosRecipeRunner = async () => {
   inventory = await chaosRecipe();
-  console.log("inventory", inventory);
 };
 
 const chaosRecipeTimeout = 2 * 60 * 1000;

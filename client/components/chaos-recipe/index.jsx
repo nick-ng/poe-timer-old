@@ -25,7 +25,9 @@ export default function ChaosRecipe() {
       updateInventory();
     }, 10 * 1000);
 
-    return clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   const render = [];

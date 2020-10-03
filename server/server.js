@@ -132,7 +132,7 @@ const chaosRecipeRunner = async () => {
   console.log("inventory", inventory);
 };
 
-const chaosRecipeTimeout = 5 * 60 * 1000;
+const chaosRecipeTimeout = 2 * 60 * 1000;
 const makeChaosRecipeTimeout = () => {
   setTimeout(() => {
     chaosRecipeRunner();

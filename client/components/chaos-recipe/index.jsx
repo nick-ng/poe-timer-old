@@ -46,30 +46,25 @@ export default function ChaosRecipe() {
     };
   }, []);
 
-  const render = [];
+  const regalAndChaos = [];
   const { chaos, regal } = inventory;
   Object.keys(chaos).forEach((slot) => {
     const count = chaos[slot] + regal[slot];
-    render.push({ slot, count });
+    regalAndChaos.push({ slot, count, chaosCount: chaos[slot] });
   });
 
   const almostCompleteSets =
-    render.length > 1 ? render.sort((a, b) => a.count - b.count)[1].count : 0;
+    regalAndChaos.length > 1
+      ? regalAndChaos.sort((a, b) => a.count - b.count)[1].count
+      : 0;
 
   return (
     <Container>
       <h1>Chaos Recipe</h1>
-      <div
-        style={{
-          color: almostCompleteSets > 5 ? "#ff3333" : "#cccccc",
-          fontSize: almostCompleteSets > 5 ? "2em" : "0.7em",
-          margin: "1em 0",
-        }}
-      >{`Almost complete sets: ${almostCompleteSets}`}</div>
       <div>
-        {render
+        {regalAndChaos
           .sort((a, b) => a.count - b.count)
-          .map(({ slot, count }) => (
+          .map(({ slot, count, chaosCount }) => (
             <div
               style={{
                 ...getColour(slot),
@@ -80,7 +75,7 @@ export default function ChaosRecipe() {
                 fontSize: `${0.8 + (almostCompleteSets + 1) / (count + 1)}em`,
               }}
               key={slot}
-            >{`${slot}: ${count}`}</div>
+            >{`${slot}: ${count} (${chaosCount})`}</div>
           ))}
       </div>
     </Container>

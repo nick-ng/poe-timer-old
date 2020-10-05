@@ -32,6 +32,8 @@ const getStyle = (slot, size) => {
       return { ...baseStyle, backgroundColor: "#009900", order: 1 };
     case "glove":
       return { ...baseStyle, backgroundColor: "#cc0000", order: 1 };
+    case "weapon":
+      return { ...baseStyle, order: 1 };
     default:
       return baseStyle;
   }
@@ -76,7 +78,12 @@ export default function ChaosRecipe() {
   return (
     <Container>
       <h1>Chaos Recipe</h1>
-      <div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {regalAndChaos
           .sort((a, b) => a.count - b.count)
           .map(({ slot, count, chaosCount }) => (

@@ -7,18 +7,33 @@ const Container = styled.div`
   align-items: flex-end;
 `;
 
-const getColour = (slot) => {
+const getStyle = (slot, size) => {
+  const baseStyle = {
+    textTransform: "capitalize",
+    padding: "0.2em",
+    textAlign: "right",
+    borderTop: "1px solid grey",
+    fontSize: `${size}em`,
+    backgroundColor: "#000000",
+    order: 2,
+  };
+
   switch (slot) {
     case "body":
-      return { backgroundColor: "#ffffff", color: "#000000" };
+      return {
+        ...baseStyle,
+        backgroundColor: "#ffffff",
+        color: "#000000",
+        order: 1,
+      };
     case "boot":
-      return { backgroundColor: "#0000cc" };
+      return { ...baseStyle, backgroundColor: "#0000cc", order: 1 };
     case "helm":
-      return { backgroundColor: "#009900" };
+      return { ...baseStyle, backgroundColor: "#009900", order: 1 };
     case "glove":
-      return { backgroundColor: "#cc0000" };
+      return { ...baseStyle, backgroundColor: "#cc0000", order: 1 };
     default:
-      return { backgroundColor: "#000000" };
+      return baseStyle;
   }
 };
 
@@ -66,14 +81,10 @@ export default function ChaosRecipe() {
           .sort((a, b) => a.count - b.count)
           .map(({ slot, count, chaosCount }) => (
             <div
-              style={{
-                ...getColour(slot),
-                textTransform: "capitalize",
-                padding: "0.2em",
-                textAlign: "right",
-                borderTop: "1px solid grey",
-                fontSize: `${0.8 + (almostCompleteSets + 1) / (count + 1)}em`,
-              }}
+              style={getStyle(
+                slot,
+                0.8 + (almostCompleteSets + 1) / (count + 1)
+              )}
               key={slot}
             >{`${slot}: ${count} (${chaosCount})`}</div>
           ))}

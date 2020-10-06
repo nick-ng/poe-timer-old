@@ -17,7 +17,6 @@ const getStyle = (slot, size) => {
     fontSize: `${size}em`,
     opacity: `${size ** 2}`,
     backgroundColor: "#000000",
-    order: 2,
   };
 
   switch (slot) {
@@ -26,16 +25,15 @@ const getStyle = (slot, size) => {
         ...baseStyle,
         backgroundColor: "#ffffff",
         color: "#000000",
-        order: 1,
       };
     case "boot":
-      return { ...baseStyle, backgroundColor: "#0000cc", order: 1 };
+      return { ...baseStyle, backgroundColor: "#0000cc" };
     case "helm":
-      return { ...baseStyle, backgroundColor: "#009900", order: 1 };
+      return { ...baseStyle, backgroundColor: "#009900" };
     case "glove":
-      return { ...baseStyle, backgroundColor: "#cc0000", order: 1 };
+      return { ...baseStyle, backgroundColor: "#cc0000" };
     case "weapon":
-      return { ...baseStyle, order: 1 };
+      return { ...baseStyle };
     case "amulet":
       return { ...baseStyle, backgroundColor: "#ffff00", color: "#000000" };
     case "ring":

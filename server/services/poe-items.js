@@ -26,6 +26,7 @@ const body = [
   "chainmail",
   "jacket",
   "raiment",
+  "necromancer silks",
 ];
 
 const helm = [

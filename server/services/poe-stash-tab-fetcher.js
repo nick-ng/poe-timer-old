@@ -2,7 +2,22 @@ const fetch = require("node-fetch");
 
 const poeItems = require("./poe-items");
 
-const fetchStashTabNames = async () => {
+const NORMAL_STASH_TABS = ["NormalStash", "QuadStash", "PremiumStash"];
+const EXCLUDED_CURRENCY = [
+  "Armourer's Scrap",
+  "Blacksmith's Whetstone",
+  "Chromatic Orb",
+  "Portal Scroll",
+  "Silver Coin",
+  "Scroll of Wisdom",
+  "Glassblower's Bauble",
+  "Perandus Coin",
+  "Orb of Transmutation",
+];
+
+const poeNinjaData = {};
+
+const fetchStashTabs = async () => {
   const res = await fetch(
     `https://www.pathofexile.com/character-window/get-stash-items?accountName=${process.env.ACCOUNT_NAME}&realm=pc&league=${process.env.LEAGUE}&tabs=1`,
     {
@@ -17,6 +32,7 @@ const fetchStashTabNames = async () => {
   try {
     const jsonRes = await res.json();
     const { tabs } = jsonRes;
+
     return tabs;
   } catch (e) {
     console.log("error when fetching tab names", e);
@@ -139,10 +155,8 @@ const recipeInfo = (item) => {
   };
 };
 
-const chaosRecipe = async () => {
-  const tabNames = await fetchStashTabNames();
-
-  const chaosRecipeTabs = tabNames.filter((tab) => tab.n.includes("chaos_"));
+const chaosRecipe = async (tabs = []) => {
+  const chaosRecipeTabs = tabs.filter((tab) => tab.n.includes("chaos_"));
 
   const inventory = {
     regal: {
@@ -191,8 +205,130 @@ const chaosRecipe = async () => {
   return inventory;
 };
 
+const almostOneDay = 23 * 60 * 60 * 1000;
+
+const poeNinja = async (itemType = "Currency") => {
+  // Check that the data isn't too old
+  if (
+    poeNinjaData[itemType] &&
+    Date.now() - poeNinjaData[itemType].timestamp < almostOneDay
+  ) {
+    return poeNinjaData[itemType].data;
+  }
+  try {
+    const res = await fetch(
+      `https://poe.ninja/api/data/currencyoverview?league=${process.env.LEAGUE}&type=${itemType}&language=en`,
+      {
+        method: "GET",
+        mode: "cors",
+      }
+    );
+
+    // https://poe.ninja/api/data/itemoverview?league=Heist&type=Fossil&language=en
+
+    poeNinjaData[itemType] = {
+      data: (await res.json()).lines,
+      timestamp: Date.now(),
+    };
+
+    return poeNinjaData[itemType].data;
+  } catch (e) {
+    console.log("error when fetching from poe.nonja", e);
+  }
+
+  return [];
+};
+
+const netWorthCalculator = async (tabs) => {
+  //CurrencyStash;
+  const specialTabs = tabs.filter(
+    (tab) => !NORMAL_STASH_TABS.includes(tab.type)
+  );
+
+  console.log(
+    "specialTabs",
+    specialTabs.map((tab) => tab.i)
+  );
+
+  return specialTabs.reduce(async (prev, tab) => {
+    let chaosPerEx = -1;
+
+    if (tab.type !== "CurrencyStash") {
+      return prev;
+    }
+
+    const stashTabContents = await fetchStashTabContents(tab.i);
+
+    const stashType = tab.type.replace("Stash", "");
+    const poeNinjaData = await poeNinja(stashType);
+
+    let chaosValue = 0;
+
+    const breakDown = stashTabContents.map(({ typeLine, stackSize }) => {
+      if (typeLine === "Chaos Orb") {
+        chaosValue = chaosValue + stackSize;
+
+        return {
+          item: typeLine,
+          count: stackSize,
+          value: stackSize,
+        };
+      }
+
+      if (EXCLUDED_CURRENCY.includes(typeLine)) {
+        return {
+          item: typeLine,
+          count: stackSize,
+          value: 0,
+        };
+      }
+
+      const a = poeNinjaData.filter((a) => a.currencyTypeName === typeLine);
+      if (a.length <= 0) {
+        return {
+          item: typeLine,
+          count: stackSize,
+          value: 0,
+        };
+      }
+
+      const { chaosEquivalent } = a.pop();
+
+      if (typeLine === "Exalted Orb") {
+        chaosPerEx = chaosEquivalent;
+      }
+
+      if (chaosValue < 5) {
+        return {
+          item: typeLine,
+          count: stackSize,
+          value: 0,
+        };
+      }
+
+      chaosValue = chaosValue + chaosEquivalent * stackSize;
+      return {
+        item: typeLine,
+        count: stackSize,
+        value: chaosEquivalent * stackSize,
+      };
+    });
+
+    return {
+      ...prev,
+      [tab.i]: {
+        tabName: tab.n,
+        chaosValue,
+        exValue: chaosValue / chaosPerEx,
+      },
+    };
+  }, {});
+};
+
 module.exports = {
-  fetchStashTabNames,
+  fetchStashTabs,
   fetchStashTabContents,
   chaosRecipe,
+  poeNinja,
+  netWorthCalculator,
 };

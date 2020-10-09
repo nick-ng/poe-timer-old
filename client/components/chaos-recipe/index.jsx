@@ -7,6 +7,26 @@ const Container = styled.div`
   align-items: flex-end;
 `;
 
+const Information = styled.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const Card = styled.div`
+  padding: 0 0.5em;
+
+  table {
+    border-collapse: collapse;
+    border: 1px solid grey;
+
+    td,
+    th {
+      padding: 0.5em;
+      border: 1px solid grey;
+    }
+  }
+`;
+
 const getStyle = (slot, size) => {
   const baseStyle = {
     textTransform: "capitalize",
@@ -50,6 +70,7 @@ export default function ChaosRecipe() {
     chaos: { weapon: 0 },
     regal: { weapon: 0 },
   });
+  const [netWorthByStashTab, setNetWorthByStashTab] = useState({});
 
   const updateInventory = async () => {
     const res = await fetch("/api/chaosrecipe");
@@ -58,8 +79,16 @@ export default function ChaosRecipe() {
     setInventory(resJson);
   };
 
+  const updateNetWorth = async () => {
+    const res = await fetch("/api/networthbystashtab");
+    const resJson = await res.json();
+
+    setNetWorthByStashTab(resJson);
+  };
+
   useEffect(() => {
     updateInventory();
+    updateNetWorth();
     const intervalId = setInterval(() => {
       updateInventory();
     }, 10 * 1000);
@@ -88,28 +117,62 @@ export default function ChaosRecipe() {
   return (
     <Container>
       <h1>Chaos Recipe</h1>
-      <h2
-        style={{
-          color: chaosItems < lowestSlot ? "red" : "white",
-        }}
-      >
-        Can make: {Math.min(chaosItems, ...regalAndChaos.map((a) => a.count))}
-      </h2>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {regalAndChaos
-          .sort((a, b) => a.count - b.count)
-          .map(({ slot, count, chaosCount }) => (
-            <div
-              style={getStyle(slot, Math.max((20 - count) / 7, 0.1))}
-              key={slot}
-            >{`${slot}: ${count} (${chaosCount})`}</div>
-          ))}
-      </div>
+      <Information>
+        <Card>
+          <h2>Networth</h2>
+          <table>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left" }}>Stash Tab</th>
+                <th style={{ textAlign: "right" }}>Chaos</th>
+                <th style={{ textAlign: "right" }}>Ex</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.values(netWorthByStashTab).map(
+                ({ tabName, chaosValue, exValue }) => (
+                  <tr key={tabName}>
+                    <td style={{ textAlign: "left" }}>{tabName}</td>
+                    <td style={{ textAlign: "right" }}>
+                      {chaosValue.toFixed(2)}
+                    </td>
+                    <td style={{ textAlign: "right" }}>{exValue.toFixed(3)}</td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </Card>
+        <Card
+          style={{
+            textAlign: "right",
+          }}
+        >
+          <h2
+            style={{
+              color: chaosItems < lowestSlot ? "red" : "white",
+            }}
+          >
+            Can make:{" "}
+            {Math.min(chaosItems, ...regalAndChaos.map((a) => a.count))}
+          </h2>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {regalAndChaos
+              .sort((a, b) => a.count - b.count)
+              .map(({ slot, count, chaosCount }) => (
+                <div
+                  style={getStyle(slot, Math.max((20 - count) / 7, 0.1))}
+                  key={slot}
+                >{`${slot}: ${count} (${chaosCount})`}</div>
+              ))}
+          </div>
+        </Card>
+      </Information>
     </Container>
   );
 }

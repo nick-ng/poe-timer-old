@@ -12,15 +12,29 @@ const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
 const poeLogParser = require("./services/poe-log-parser");
 const { processLine } = require("./services/poe-log-parser");
-const { chaosRecipe } = require("./services/poe-stash-tab-fetcher");
+const {
+  fetchStashTabs,
+  chaosRecipe,
+  netWorthCalculator,
+} = require("./services/poe-stash-tab-fetcher");
+
+const wait = (ms) =>
+  new Promise((resolve, reject) => {
+    setTimeout(resolve, ms);
+  });
 
 const app = express();
 const server = http.createServer(app);
 const io = socketio();
 
+let stashTabs = { tabs: [], lastUpdated: 0 };
+
+let netWorthByStashTab = {};
+
 let inventory = {
   chaos: { weapon: 0 },
   regal: { weapon: 0 },
+  lastUpdated: 0,
 };
 
 io.on("connection", (socket) => {
@@ -119,6 +133,10 @@ router.get("/api/chaosrecipe", (req, res, next) => {
   res.json(inventory);
 });
 
+router.get("/api/networthbystashtab", (req, res, next) => {
+  res.json(netWorthByStashTab);
+});
+
 app.use(router);
 
 // serve static files
@@ -130,19 +148,52 @@ app.use((req, res) => {
   res.sendFile(path.resolve(__dirname, "../dist/index.html"));
 });
 
-const chaosRecipeRunner = async () => {
-  inventory = await chaosRecipe();
+const stashTabCheckPeriod = 2 * 60 * 1000;
+const stashTabFetchRunner = async () => {
+  const tabs = await fetchStashTabs();
+  stashTabs = {
+    tabs,
+    lastUpdated: Date.now(),
+  };
 };
 
-const chaosRecipeTimeout = 2 * 60 * 1000;
+const makeStashTabFetchRunner = () => {
+  setTimeout(async () => {
+    await stashTabFetchRunner();
+    makeStashTabFetchRunner();
+  }, stashTabCheckPeriod);
+};
+stashTabFetchRunner();
+makeStashTabFetchRunner();
+
+const chaosRecipeRunner = async () => {
+  while (stashTabs.tabs.length === 0) {
+    await wait(100);
+  }
+
+  inventory = {
+    ...(await chaosRecipe(stashTabs.tabs)),
+    lastUpdated: Date.now(),
+  };
+};
+
 const makeChaosRecipeTimeout = () => {
-  setTimeout(() => {
-    chaosRecipeRunner();
+  setTimeout(async () => {
+    await chaosRecipeRunner();
     makeChaosRecipeTimeout();
-  }, chaosRecipeTimeout);
+  }, stashTabCheckPeriod);
 };
 chaosRecipeRunner();
 makeChaosRecipeTimeout();
+
+const netWorthRunner = async () => {
+  while (stashTabs.tabs.length === 0) {
+    await wait(100);
+  }
+  netWorthByStashTab = await netWorthCalculator(stashTabs.tabs);
+};
+
+netWorthRunner();
 
 // starting listening
 const port = process.env.PORT || 3000;

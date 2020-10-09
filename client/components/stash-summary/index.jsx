@@ -65,7 +65,7 @@ const getStyle = (slot, size) => {
   }
 };
 
-export default function ChaosRecipe() {
+export default function StashSummary() {
   const [inventory, setInventory] = useState({
     chaos: { weapon: 0 },
     regal: { weapon: 0 },
@@ -115,9 +115,20 @@ export default function ChaosRecipe() {
 
   const lowestSlot = Math.min(...regalAndChaos.map((a) => a.count));
 
+  const { totalChaosNetWorth, totalExNetWorth } = Object.values(
+    netWorthByStashTab
+  ).reduce(
+    (prev, curr) => {
+      prev.totalChaosNetWorth = prev.totalChaosNetWorth + curr.chaosValue;
+      prev.totalExNetWorth = prev.totalExNetWorth + curr.exValue;
+      return prev;
+    },
+    { totalChaosNetWorth: 0, totalExNetWorth: 0 }
+  );
+
   return (
     <Container>
-      <h1>Chaos Recipe</h1>
+      <h1>Stash Summary</h1>
       <Information>
         <Card>
           <h2>Networth</h2>
@@ -130,6 +141,11 @@ export default function ChaosRecipe() {
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td style={{ textAlign: "left" }}>Total</td>
+                <td style={{ textAlign: "right" }}>{totalChaosNetWorth}</td>
+                <td style={{ textAlign: "right" }}>{totalExNetWorth}</td>
+              </tr>
               {Object.values(netWorthByStashTab).map(
                 ({ tabName, chaosValue, exValue }) => (
                   <tr key={tabName}>
@@ -154,7 +170,7 @@ export default function ChaosRecipe() {
               color: chaosItems < lowestSlot ? "red" : "white",
             }}
           >
-            Can make:{" "}
+            Chaos Recipe:{" "}
             {Math.min(chaosItems, ...regalAndChaos.map((a) => a.count))}
           </h2>
           <div

@@ -7,7 +7,7 @@ import css from "./styles.css";
 import Nav from "./components/nav";
 import LogCombiner from "./components/poe-timer/log-combiner";
 import PoeTimer from "./components/poe-timer";
-import ChaosRecipe from "./components/chaos-recipe";
+import StashSummary from "./components/stash-summary";
 
 export default function App() {
   return (
@@ -21,8 +21,8 @@ export default function App() {
         <Nav />
         <div className={css.pageContent}>
           <Switch>
-            <R path="/chaosrecipe">
-              <ChaosRecipe />
+            <R path="/stashsummary">
+              <StashSummary />
             </R>
             <R path="/log-combiner">
               <LogCombiner />

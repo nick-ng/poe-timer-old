@@ -143,8 +143,12 @@ export default function StashSummary() {
             <tbody>
               <tr>
                 <td style={{ textAlign: "left" }}>Total</td>
-                <td style={{ textAlign: "right" }}>{totalChaosNetWorth}</td>
-                <td style={{ textAlign: "right" }}>{totalExNetWorth}</td>
+                <td style={{ textAlign: "right" }}>
+                  {totalChaosNetWorth.toFixed(2)}
+                </td>
+                <td style={{ textAlign: "right" }}>
+                  {totalExNetWorth.toFixed(3)}
+                </td>
               </tr>
               {Object.values(netWorthByStashTab).map(
                 ({ tabName, chaosValue, exValue }) => (

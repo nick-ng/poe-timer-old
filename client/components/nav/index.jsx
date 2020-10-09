@@ -14,7 +14,7 @@ const Nav = () => (
     <NavLink icon="fa-plus" to="/log-combiner">
       Log Combiner
     </NavLink>
-    <NavLink icon="fa-plus" to="/chaosrecipe">
+    <NavLink icon="fa-plus" to="/stashsummary">
       Chaos Recipe
     </NavLink>
   </div>

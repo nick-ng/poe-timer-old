@@ -15,7 +15,7 @@ const Nav = () => (
       Log Combiner
     </NavLink>
     <NavLink icon="fa-plus" to="/stashsummary">
-      Chaos Recipe
+      Stash Summary
     </NavLink>
   </div>
 );

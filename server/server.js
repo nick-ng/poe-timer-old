@@ -193,7 +193,15 @@ const netWorthRunner = async () => {
   netWorthByStashTab = await netWorthCalculator(stashTabs.tabs);
 };
 
+const makeNetWorthRunner = () => {
+  setTimeout(async () => {
+    await netWorthRunner();
+    makeNetWorthRunner();
+  }, stashTabCheckPeriod);
+};
+
 netWorthRunner();
+makeNetWorthRunner();
 
 // starting listening
 const port = process.env.PORT || 3000;

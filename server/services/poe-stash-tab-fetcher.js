@@ -245,11 +245,6 @@ const netWorthCalculator = async (tabs) => {
     (tab) => !NORMAL_STASH_TABS.includes(tab.type)
   );
 
-  console.log(
-    "specialTabs",
-    specialTabs.map((tab) => tab.i)
-  );
-
   return specialTabs.reduce(async (prev, tab) => {
     let chaosPerEx = -1;
 

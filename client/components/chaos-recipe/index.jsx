@@ -91,6 +91,7 @@ export default function ChaosRecipe() {
     updateNetWorth();
     const intervalId = setInterval(() => {
       updateInventory();
+      updateNetWorth();
     }, 10 * 1000);
 
     return () => {

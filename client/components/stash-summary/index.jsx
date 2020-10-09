@@ -138,6 +138,7 @@ export default function StashSummary() {
                 <th style={{ textAlign: "left" }}>Stash Tab</th>
                 <th style={{ textAlign: "right" }}>Chaos</th>
                 <th style={{ textAlign: "right" }}>Ex</th>
+                <th style={{ textAlign: "right" }}>Most Expensive</th>
               </tr>
             </thead>
             <tbody>
@@ -149,15 +150,20 @@ export default function StashSummary() {
                 <td style={{ textAlign: "right" }}>
                   {totalExNetWorth.toFixed(3)}
                 </td>
+                <td></td>
               </tr>
               {Object.values(netWorthByStashTab).map(
-                ({ tabName, chaosValue, exValue }) => (
+                ({ tabName, chaosValue, exValue, mostExpensiveStack }) => (
                   <tr key={tabName}>
                     <td style={{ textAlign: "left" }}>{tabName}</td>
                     <td style={{ textAlign: "right" }}>
                       {chaosValue.toFixed(2)}
                     </td>
                     <td style={{ textAlign: "right" }}>{exValue.toFixed(3)}</td>
+                    <td style={{ textAlign: "right" }}>
+                      {mostExpensiveStack.stackSize}{" "}
+                      {mostExpensiveStack.typeLine}: {mostExpensiveStack.value}c
+                    </td>
                   </tr>
                 )
               )}

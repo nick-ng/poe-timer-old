@@ -215,6 +215,10 @@ const poeNinja = async (itemType = "Currency") => {
   ) {
     return poeNinjaData[itemType].data;
   }
+
+  const requestType = ["Currency", "Fragment"].includes(itemType)
+    ? "currency"
+    : "item";
   try {
     const res = await fetch(
       `https://poe.ninja/api/data/currencyoverview?league=${process.env.LEAGUE}&type=${itemType}&language=en`,
@@ -245,79 +249,59 @@ const netWorthCalculator = async (tabs) => {
     (tab) => !NORMAL_STASH_TABS.includes(tab.type)
   );
 
-  return specialTabs.reduce(async (prev, tab) => {
-    let chaosPerEx = -1;
+  const result = {};
+  let chaosPerEx = -1;
 
-    if (tab.type !== "CurrencyStash") {
-      return prev;
+  for (const tab of specialTabs) {
+    if (!["CurrencyStash", "FragmentStash"].includes(tab.type)) {
+      continue;
     }
 
+    let mostExpensiveStack = { value: -1 };
     const stashTabContents = await fetchStashTabContents(tab.i);
-
     const stashType = tab.type.replace("Stash", "");
     const poeNinjaData = await poeNinja(stashType);
 
     let chaosValue = 0;
-
-    const breakDown = stashTabContents.map(({ typeLine, stackSize }) => {
+    stashTabContents.forEach(({ typeLine, stackSize }) => {
       if (typeLine === "Chaos Orb") {
         chaosValue = chaosValue + stackSize;
-
-        return {
-          item: typeLine,
-          count: stackSize,
-          value: stackSize,
-        };
+        return;
       }
-
       if (EXCLUDED_CURRENCY.includes(typeLine)) {
-        return {
-          item: typeLine,
-          count: stackSize,
-          value: 0,
-        };
+        return;
       }
-
       const a = poeNinjaData.filter((a) => a.currencyTypeName === typeLine);
       if (a.length <= 0) {
-        return {
-          item: typeLine,
-          count: stackSize,
-          value: 0,
-        };
+        return;
       }
-
       const { chaosEquivalent } = a.pop();
-
       if (typeLine === "Exalted Orb") {
         chaosPerEx = chaosEquivalent;
       }
-
-      if (chaosValue < 5) {
-        return {
-          item: typeLine,
-          count: stackSize,
-          value: 0,
-        };
+      if (chaosEquivalent * stackSize < 5) {
+        return;
       }
 
+      if (mostExpensiveStack.value < chaosEquivalent * stackSize) {
+        mostExpensiveStack = {
+          typeLine,
+          stackSize,
+          value: chaosEquivalent * stackSize,
+        };
+      }
       chaosValue = chaosValue + chaosEquivalent * stackSize;
-      return {
-        item: typeLine,
-        count: stackSize,
-        value: chaosEquivalent * stackSize,
-      };
     });
 
-    return {
-      ...prev,
-      [tab.i]: {
-        tabName: tab.n,
-        chaosValue,
-        exValue: chaosValue / chaosPerEx,
-      },
+    result[tab.i] = {
+      tabName: tab.n,
+      chaosValue,
+      exValue: chaosValue / chaosPerEx,
+      mostExpensiveStack,
     };
-  }, {});
+  }
+
+  return result;
 };
 
 module.exports = {

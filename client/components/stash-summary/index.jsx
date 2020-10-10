@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
+const SNAPSHOT_KEY = "POE_SNAPSHOT_KEY";
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -25,6 +27,24 @@ const Card = styled.div`
       border: 1px solid grey;
     }
   }
+
+  button {
+    padding: 0.5em;
+    margin: 0.5em 0;
+  }
+`;
+
+const Thl = styled.th`
+  text-align: left;
+`;
+const Thr = styled.th`
+  text-align: right;
+`;
+const Tdl = styled.td`
+  text-align: left;
+`;
+const Tdr = styled.td`
+  text-align: right;
 `;
 
 const getStyle = (slot, size) => {
@@ -71,6 +91,9 @@ export default function StashSummary() {
     regal: { weapon: 0 },
   });
   const [netWorthByStashTab, setNetWorthByStashTab] = useState({});
+  const [netWorthSnapshot, setNetWorthSnapshot] = useState(
+    JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "{}")
+  );
 
   const updateInventory = async () => {
     const res = await fetch("/api/chaosrecipe");
@@ -98,6 +121,10 @@ export default function StashSummary() {
       clearInterval(intervalId);
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(netWorthSnapshot));
+  }, [netWorthSnapshot]);
 
   const regalAndChaos = [];
   let chaosItems = 0;
@@ -129,8 +156,15 @@ export default function StashSummary() {
     }
   );
 
-  const recipeInChaos = regalAndChaosCount / 8;
+  const recipeInChaos = Math.min(chaosItems, lowestSlot);
   const recipeInEx = recipeInChaos / chaosPerEx;
+  const totalChaosNetWorthB = totalChaosNetWorth + recipeInChaos;
+  const totalExNetWorthB = totalExNetWorth + recipeInEx;
+
+  const chaosSinceSnapshot =
+    totalChaosNetWorthB - netWorthSnapshot.totalChaosNetWorthB;
+  const hoursSniceSnapshot =
+    (Date.now() - netWorthSnapshot.timestamp) / (1000 * 60 * 60);
 
   return (
     <Container>
@@ -141,20 +175,20 @@ export default function StashSummary() {
           <table>
             <thead>
               <tr>
-                <th style={{ textAlign: "left" }}>Stash Tab</th>
-                <th style={{ textAlign: "right" }}>Chaos</th>
-                <th style={{ textAlign: "right" }}>Ex</th>
-                <th style={{ textAlign: "left" }}>Notes</th>
+                <Thl>Stash Tab</Thl>
+                <Thr>Chaos</Thr>
+                <Thr>Ex</Thr>
+                <Thl>Notes</Thl>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td style={{ textAlign: "left" }}>Total</td>
                 <td style={{ textAlign: "right" }}>
-                  {(recipeInChaos + totalChaosNetWorth).toFixed(2)}
+                  {totalChaosNetWorthB.toFixed(2)}
                 </td>
                 <td style={{ textAlign: "right" }}>
-                  {(recipeInEx + totalExNetWorth).toFixed(3)}
+                  {totalExNetWorthB.toFixed(3)}
                 </td>
                 <td style={{ textAlign: "left" }}></td>
               </tr>
@@ -163,10 +197,8 @@ export default function StashSummary() {
                 <td style={{ textAlign: "right" }}>
                   {recipeInChaos.toFixed(2)}
                 </td>
-                <td style={{ textAlign: "left" }}>{recipeInEx.toFixed(3)}</td>
-                <td style={{ textAlign: "left" }}>
-                  {regalAndChaosCount} items
-                </td>
+                <td style={{ textAlign: "right" }}>{recipeInEx.toFixed(3)}</td>
+                <td style={{ textAlign: "left" }}></td>
               </tr>
               {Object.values(netWorthByStashTab).map(
                 ({ tabName, chaosValue, exValue, mostExpensiveStack }) => (
@@ -186,6 +218,47 @@ export default function StashSummary() {
               )}
             </tbody>
           </table>
+          <button
+            onClick={() => {
+              setNetWorthSnapshot({
+                totalChaosNetWorthB,
+                timestamp: Date.now(),
+              });
+            }}
+          >
+            Snapshot Networth
+          </button>
+          {hoursSniceSnapshot > 0 && (
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <Thr>Chaos</Thr>
+                  <Thr>Ex</Thr>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <Tdl>Diff</Tdl>
+                  <Tdr>{chaosSinceSnapshot.toFixed(2)}</Tdr>
+                  <Tdr>{(chaosSinceSnapshot / chaosPerEx).toFixed(3)}</Tdr>
+                </tr>
+                <tr>
+                  <Tdl>per Hr</Tdl>
+                  <Tdr>
+                    {(chaosSinceSnapshot / hoursSniceSnapshot).toFixed(2)}
+                  </Tdr>
+                  <Tdr>
+                    {(
+                      chaosSinceSnapshot /
+                      chaosPerEx /
+                      hoursSniceSnapshot
+                    ).toFixed(3)}
+                  </Tdr>
+                </tr>
+              </tbody>
+            </table>
+          )}
         </Card>
         <Card
           style={{

@@ -205,13 +205,13 @@ const chaosRecipe = async (tabs = []) => {
   return inventory;
 };
 
-const almostOneDay = 23 * 60 * 60 * 1000;
+const poeNinjaRefreshAge = 2 * 60 * 60 * 1000;
 
 const poeNinja = async (itemType = "Currency") => {
   // Check that the data isn't too old
   if (
     poeNinjaData[itemType] &&
-    Date.now() - poeNinjaData[itemType].timestamp < almostOneDay
+    Date.now() - poeNinjaData[itemType].timestamp < poeNinjaRefreshAge
   ) {
     return poeNinjaData[itemType].data;
   }

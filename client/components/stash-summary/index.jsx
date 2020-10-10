@@ -108,23 +108,29 @@ export default function StashSummary() {
     chaosItems = chaosItems + chaos[slot];
   });
 
-  const almostCompleteSets =
-    regalAndChaos.length > 1
-      ? regalAndChaos.sort((a, b) => a.count - b.count)[1].count
-      : 0;
-
   const lowestSlot = Math.min(...regalAndChaos.map((a) => a.count));
+  const regalAndChaosCount = regalAndChaos.reduce((p, c) => p + c.count, 0);
 
+  let chaosPerEx = 0;
   const { totalChaosNetWorth, totalExNetWorth } = Object.values(
     netWorthByStashTab
   ).reduce(
     (prev, curr) => {
+      if (curr.exValue > 0) {
+        chaosPerEx = curr.chaosValue / curr.exValue;
+      }
       prev.totalChaosNetWorth = prev.totalChaosNetWorth + curr.chaosValue;
       prev.totalExNetWorth = prev.totalExNetWorth + curr.exValue;
       return prev;
     },
-    { totalChaosNetWorth: 0, totalExNetWorth: 0 }
+    {
+      totalChaosNetWorth: 0,
+      totalExNetWorth: 0,
+    }
   );
+
+  const recipeInChaos = regalAndChaosCount / 8;
+  const recipeInEx = recipeInChaos / chaosPerEx;
 
   return (
     <Container>
@@ -138,19 +144,29 @@ export default function StashSummary() {
                 <th style={{ textAlign: "left" }}>Stash Tab</th>
                 <th style={{ textAlign: "right" }}>Chaos</th>
                 <th style={{ textAlign: "right" }}>Ex</th>
-                <th style={{ textAlign: "right" }}>Most Expensive</th>
+                <th style={{ textAlign: "left" }}>Notes</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td style={{ textAlign: "left" }}>Total</td>
                 <td style={{ textAlign: "right" }}>
-                  {totalChaosNetWorth.toFixed(2)}
+                  {(recipeInChaos + totalChaosNetWorth).toFixed(2)}
                 </td>
                 <td style={{ textAlign: "right" }}>
-                  {totalExNetWorth.toFixed(3)}
+                  {(recipeInEx + totalExNetWorth).toFixed(3)}
                 </td>
-                <td></td>
+                <td style={{ textAlign: "left" }}></td>
+              </tr>
+              <tr>
+                <td style={{ textAlign: "left" }}>Chaos Recipe</td>
+                <td style={{ textAlign: "right" }}>
+                  {recipeInChaos.toFixed(2)}
+                </td>
+                <td style={{ textAlign: "left" }}>{recipeInEx.toFixed(3)}</td>
+                <td style={{ textAlign: "left" }}>
+                  {regalAndChaosCount} items
+                </td>
               </tr>
               {Object.values(netWorthByStashTab).map(
                 ({ tabName, chaosValue, exValue, mostExpensiveStack }) => (
@@ -160,9 +176,10 @@ export default function StashSummary() {
                       {chaosValue.toFixed(2)}
                     </td>
                     <td style={{ textAlign: "right" }}>{exValue.toFixed(3)}</td>
-                    <td style={{ textAlign: "right" }}>
+                    <td style={{ textAlign: "left" }}>
                       {mostExpensiveStack.stackSize}{" "}
-                      {mostExpensiveStack.typeLine}: {mostExpensiveStack.value}c
+                      {mostExpensiveStack.typeLine} = {mostExpensiveStack.value}{" "}
+                      c
                     </td>
                   </tr>
                 )

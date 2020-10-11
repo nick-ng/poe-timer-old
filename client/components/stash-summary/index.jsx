@@ -54,8 +54,8 @@ const getStyle = (slot, size) => {
     textAlign: "right",
     border: "1px solid grey",
     marginBottom: "-1px",
-    fontSize: `${size}em`,
-    opacity: `${size ** 2}`,
+    fontSize: `${Math.max(size, 0.25)}em`,
+    opacity: `${Math.max(size, 0.3)}`,
     backgroundColor: "#000000",
   };
 
@@ -156,7 +156,7 @@ export default function StashSummary() {
     }
   );
 
-  const recipeInChaos = Math.min(chaosItems, lowestSlot);
+  const recipeInChaos = 2 * Math.min(chaosItems, lowestSlot);
   const recipeInEx = recipeInChaos / chaosPerEx;
   const totalChaosNetWorthB = totalChaosNetWorth + recipeInChaos;
   const totalExNetWorthB = totalExNetWorth + recipeInEx;

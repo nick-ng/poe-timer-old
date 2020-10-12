@@ -221,23 +221,39 @@ const poeNinja = async (itemType = "Currency") => {
     : "item";
   try {
     const res = await fetch(
-      `https://poe.ninja/api/data/currencyoverview?league=${process.env.LEAGUE}&type=${itemType}&language=en`,
+      `https://poe.ninja/api/data/${requestType}overview?league=${process.env.LEAGUE}&type=${itemType}&language=en`,
       {
         method: "GET",
         mode: "cors",
       }
     );
 
-    // https://poe.ninja/api/data/itemoverview?league=Heist&type=Fossil&language=en
+    const resJson = await res.json();
+
+    let data = [];
+
+    if (requestType === "item") {
+      data = resJson.lines.map((a) => ({
+        ...a,
+        typeLine: a.name,
+        each: a.chaosValue,
+      }));
+    } else {
+      data = resJson.lines.map((a) => ({
+        ...a,
+        typeLine: a.currencyTypeName,
+        each: a.chaosEquivalent,
+      }));
+    }
 
     poeNinjaData[itemType] = {
-      data: (await res.json()).lines,
+      data,
       timestamp: Date.now(),
     };
 
-    return poeNinjaData[itemType].data;
+    return data;
   } catch (e) {
-    console.log("error when fetching from poe.nonja", e);
+    console.log("error when fetching from poe.ninja", e);
   }
 
   return [];
@@ -253,7 +269,12 @@ const netWorthCalculator = async (tabs) => {
   let chaosPerEx = -1;
 
   for (const tab of specialTabs) {
-    if (!["CurrencyStash", "FragmentStash"].includes(tab.type)) {
+    if (
+      !["CurrencyStash", "FragmentStash", "DivinationCardStash"].includes(
+        tab.type
+      )
+    ) {
+      console.log("tab.type", tab.type);
       continue;
     }
 
@@ -263,7 +284,13 @@ const netWorthCalculator = async (tabs) => {
     const poeNinjaData = await poeNinja(stashType);
 
     let chaosValue = 0;
-    stashTabContents.forEach(({ typeLine, stackSize }) => {
+    let asdf = true;
+    stashTabContents.forEach((item) => {
+      const { typeLine, stackSize } = item;
+      if (tab.type === "DivinationCardStash" && asdf) {
+        // console.log("item", item);
+        asdf = false;
+      }
       if (typeLine === "Chaos Orb") {
         chaosValue = chaosValue + stackSize;
         return;
@@ -271,26 +298,26 @@ const netWorthCalculator = async (tabs) => {
       if (EXCLUDED_CURRENCY.includes(typeLine)) {
         return;
       }
-      const a = poeNinjaData.filter((a) => a.currencyTypeName === typeLine);
+      const a = poeNinjaData.filter((a) => a.typeLine === typeLine);
       if (a.length <= 0) {
         return;
       }
-      const { chaosEquivalent } = a.pop();
+      const { each } = a.pop();
       if (typeLine === "Exalted Orb") {
-        chaosPerEx = chaosEquivalent;
+        chaosPerEx = each;
       }
-      if (chaosEquivalent * stackSize < 5) {
+      if (each * stackSize < 5) {
         return;
       }
 
-      if (mostExpensiveStack.value < chaosEquivalent * stackSize) {
+      if (mostExpensiveStack.value < each * stackSize) {
         mostExpensiveStack = {
           typeLine,
           stackSize,
-          value: chaosEquivalent * stackSize,
+          value: each * stackSize,
         };
       }
-      chaosValue = chaosValue + chaosEquivalent * stackSize;
+      chaosValue = chaosValue + each * stackSize;
     });
 
     result[tab.i] = {

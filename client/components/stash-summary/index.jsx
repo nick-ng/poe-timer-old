@@ -172,6 +172,7 @@ export default function StashSummary() {
       <Information>
         <Card>
           <h2>Networth</h2>
+          <h3>Chaos/Ex: {chaosPerEx}</h3>
           <table>
             <thead>
               <tr>

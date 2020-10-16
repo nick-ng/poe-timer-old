@@ -156,7 +156,7 @@ export default function StashSummary() {
     }
   );
 
-  const recipeInChaos = 2 * Math.min(chaosItems, lowestSlot);
+  const recipeInChaos = (2 * regalAndChaosCount) / 8;
   const recipeInEx = recipeInChaos / chaosPerEx;
   const totalChaosNetWorthB = totalChaosNetWorth + recipeInChaos;
   const totalExNetWorthB = totalExNetWorth + recipeInEx;
@@ -211,8 +211,8 @@ export default function StashSummary() {
                     <td style={{ textAlign: "right" }}>{exValue.toFixed(3)}</td>
                     <td style={{ textAlign: "left" }}>
                       {mostExpensiveStack.stackSize}{" "}
-                      {mostExpensiveStack.typeLine} = {mostExpensiveStack.value}{" "}
-                      c
+                      {mostExpensiveStack.typeLine} ={" "}
+                      {mostExpensiveStack.value.toFixed(2)} c
                     </td>
                   </tr>
                 )
@@ -233,7 +233,7 @@ export default function StashSummary() {
             <table>
               <thead>
                 <tr>
-                  <th></th>
+                  <th>{hoursSniceSnapshot.toFixed(2)} hours</th>
                   <Thr>Chaos</Thr>
                   <Thr>Ex</Thr>
                 </tr>

@@ -14,8 +14,26 @@ const EXCLUDED_CURRENCY = [
   "Perandus Coin",
   "Orb of Transmutation",
 ];
+const POE_NINJA_CURRENCY = ["Currency", "Fragment"];
+const POE_NINJA_ITEM = [
+  "DeliriumOrb",
+  "Watchstone",
+  "Oil",
+  // "Incubator",
+  "Scarab",
+  "Fossil",
+  "Resonator",
+  "Essence",
+  "DivinationCard",
+  // "Prophecy",
+  // "SkillGem",
+];
+const NON_CURRENCY_THRESHOLD = 0.5;
 
-const poeNinjaData = {};
+const poeNinjaData = {
+  timestamp: 0,
+  data: [],
+};
 
 const fetchStashTabs = async () => {
   const res = await fetch(
@@ -207,56 +225,67 @@ const chaosRecipe = async (tabs = []) => {
 
 const poeNinjaRefreshAge = 2 * 60 * 60 * 1000;
 
-const poeNinja = async (itemType = "Currency") => {
+const poeNinja = async () => {
   // Check that the data isn't too old
-  if (
-    poeNinjaData[itemType] &&
-    Date.now() - poeNinjaData[itemType].timestamp < poeNinjaRefreshAge
-  ) {
-    return poeNinjaData[itemType].data;
+  if (Date.now() - poeNinjaData.timestamp < poeNinjaRefreshAge) {
+    return poeNinjaData.data;
   }
 
-  const requestType = ["Currency", "Fragment"].includes(itemType)
-    ? "currency"
-    : "item";
-  try {
-    const res = await fetch(
-      `https://poe.ninja/api/data/${requestType}overview?league=${process.env.LEAGUE}&type=${itemType}&language=en`,
-      {
-        method: "GET",
-        mode: "cors",
-      }
-    );
+  poeNinjaData.data = [];
+  poeNinjaData.timestamp = Date.now();
+  console.log(`${new Date()} Fetching poe.ninja data`);
 
-    const resJson = await res.json();
+  for (const type of POE_NINJA_CURRENCY) {
+    const requestType = "currency";
+    try {
+      const res = await fetch(
+        `https://poe.ninja/api/data/${requestType}overview?league=${process.env.LEAGUE}&type=${type}&language=en`,
+        {
+          method: "GET",
+          mode: "cors",
+        }
+      );
+      const resJson = await res.json();
 
-    let data = [];
-
-    if (requestType === "item") {
-      data = resJson.lines.map((a) => ({
-        ...a,
-        typeLine: a.name,
-        each: a.chaosValue,
-      }));
-    } else {
-      data = resJson.lines.map((a) => ({
-        ...a,
-        typeLine: a.currencyTypeName,
-        each: a.chaosEquivalent,
-      }));
+      poeNinjaData.data = poeNinjaData.data.concat(
+        resJson.lines.map((a) => ({
+          ...a,
+          typeLine: a.currencyTypeName,
+          each: a.chaosEquivalent,
+        }))
+      );
+    } catch (e) {
+      console.log("error when fetching from poe.ninja", e);
     }
-
-    poeNinjaData[itemType] = {
-      data,
-      timestamp: Date.now(),
-    };
-
-    return data;
-  } catch (e) {
-    console.log("error when fetching from poe.ninja", e);
   }
 
-  return [];
+  for (const type of POE_NINJA_ITEM) {
+    const requestType = "item";
+    try {
+      const res = await fetch(
+        `https://poe.ninja/api/data/${requestType}overview?league=${process.env.LEAGUE}&type=${type}&language=en`,
+        {
+          method: "GET",
+          mode: "cors",
+        }
+      );
+      const resJson = await res.json();
+
+      poeNinjaData.data = poeNinjaData.data.concat(
+        resJson.lines
+          .map((a) => ({
+            ...a,
+            typeLine: a.name,
+            each: a.chaosValue,
+          }))
+          .filter((a) => a.each > NON_CURRENCY_THRESHOLD)
+      );
+    } catch (e) {
+      console.log("error when fetching from poe.ninja", e);
+    }
+  }
+
+  return poeNinjaData.data;
 };
 
 const netWorthCalculator = async (tabs) => {
@@ -270,9 +299,16 @@ const netWorthCalculator = async (tabs) => {
 
   for (const tab of specialTabs) {
     if (
-      !["CurrencyStash", "FragmentStash", "DivinationCardStash"].includes(
-        tab.type
-      )
+      ![
+        "CurrencyStash",
+        "FragmentStash",
+        "DivinationCardStash",
+        "DelveStash",
+        "EssenceStash",
+        "MetamorphStash",
+        "BlightStash",
+        "DeliriumStash",
+      ].includes(tab.type)
     ) {
       console.log("tab.type", tab.type);
       continue;
@@ -280,17 +316,11 @@ const netWorthCalculator = async (tabs) => {
 
     let mostExpensiveStack = { value: -1 };
     const stashTabContents = await fetchStashTabContents(tab.i);
-    const stashType = tab.type.replace("Stash", "");
-    const poeNinjaData = await poeNinja(stashType);
+    const priceData = await poeNinja();
 
     let chaosValue = 0;
-    let asdf = true;
     stashTabContents.forEach((item) => {
       const { typeLine, stackSize } = item;
-      if (tab.type === "DivinationCardStash" && asdf) {
-        // console.log("item", item);
-        asdf = false;
-      }
       if (typeLine === "Chaos Orb") {
         chaosValue = chaosValue + stackSize;
         return;
@@ -298,11 +328,12 @@ const netWorthCalculator = async (tabs) => {
       if (EXCLUDED_CURRENCY.includes(typeLine)) {
         return;
       }
-      const a = poeNinjaData.filter((a) => a.typeLine === typeLine);
+      const a = priceData.filter((a) => a.typeLine === typeLine);
       if (a.length <= 0) {
         return;
       }
       const { each } = a.pop();
+
       if (typeLine === "Exalted Orb") {
         chaosPerEx = each;
       }

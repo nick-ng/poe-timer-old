@@ -16,7 +16,7 @@ const Container = styled.div`
   max-height: 200px;
   max-width: 60vw;
   overflow-y: scroll;
-  padding: 0.5em;
+  padding: 0.5rem;
   background-color: #eeeeee;
   border-top: 1px solid grey;
   border-right: 1px solid grey;
@@ -35,7 +35,7 @@ const Controls = styled.div`
   }
 
   span {
-    margin-left: 1em;
+    margin-left: 1rem;
   }
 `;
 

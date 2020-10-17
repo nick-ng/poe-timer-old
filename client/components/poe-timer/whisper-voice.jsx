@@ -12,7 +12,7 @@ const Container = styled.div`
   max-height: 200px;
   max-width: 30vw;
   overflow-y: scroll;
-  padding: 0.5em;
+  padding: 0.5rem;
   border-top: 1px solid grey;
   border-left: 1px solid grey;
   background-color: white;

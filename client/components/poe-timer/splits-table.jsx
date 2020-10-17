@@ -13,12 +13,12 @@ const MainTable = styled.table`
 
   tbody tr:first-child {
     background-color: #222222;
-    font-size: 1.3em;
+    font-size: 1.3rem;
   }
 
   th,
   td {
-    padding: 0.1em 0.2em;
+    padding: 0.1rem 0.2rem;
   }
 `;
 

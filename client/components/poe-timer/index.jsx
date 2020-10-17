@@ -24,14 +24,14 @@ const BEST_ZONE_SPLITS = "POE_BEST_ZONE_SPLITS";
 const BUILD_NAME = "POE_BUILD_NAME";
 
 const PageColumns = styled.div`
-  margin-top: 1em;
+  margin-top: 1rem;
   display: grid;
   grid-template-columns: 4fr 3fr 4fr;
-  gap: 0.5em;
+  gap: 0.5rem;
 
   & > * {
     border: 1px solid grey;
-    padding: 0.5em;
+    padding: 0.5rem;
   }
 `;
 
@@ -39,7 +39,7 @@ const ControlBar = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 1em;
+  gap: 1rem;
 `;
 
 const ControlsContainer = styled.div`
@@ -48,7 +48,7 @@ const ControlsContainer = styled.div`
   align-items: center;
 
   & + & {
-    margin-top: 0.3em;
+    margin-top: 0.3rem;
   }
 `;
 
@@ -480,8 +480,8 @@ export default function PoeTimer() {
             Zone-Level Threshold:
             <input
               style={{
-                width: "2em",
-                marginRight: "1em",
+                width: "2rem",
+                marginRight: "1rem",
               }}
               type="text"
               value={levelThreshold}

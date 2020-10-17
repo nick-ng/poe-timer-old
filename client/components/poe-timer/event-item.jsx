@@ -6,7 +6,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  font-size: 0.8em;
+  font-size: 0.8rem;
 
   &:nth-child(even) {
     background-color: #222222;
@@ -30,7 +30,7 @@ export default function EventItem({
       <button onClick={startChangeHandler}>Start from here</button>
       <div
         style={{
-          marginRight: "1em",
+          marginRight: "1rem",
         }}
       >
         {`${moment(event.timestamp).format("YYYY/MM/DD hh:mm a")}: ${

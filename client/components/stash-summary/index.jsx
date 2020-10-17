@@ -21,7 +21,7 @@ const Information = styled.div`
 `;
 
 const Card = styled.div`
-  padding: 0 0.5em;
+  padding: 0 0.5rem;
 
   table {
     border-collapse: collapse;
@@ -29,27 +29,27 @@ const Card = styled.div`
 
     td,
     th {
-      padding: 0.5em;
+      padding: 0.5rem;
       border: 1px solid grey;
     }
   }
 
   button {
-    padding: 0.5em;
-    margin: 0.5em 0;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
   }
 `;
 
 const LoadingBar = styled.div`
-  height: 1em;
+  height: 0.3rem;
   position: relative;
   border: 1px solid grey;
-  margin: 0.5em 0 0;
+  margin: 0.5rem 0 0;
 
   &::after {
     position: absolute;
     content: " ";
-    background-color: white;
+    background-color: grey;
     height: 100%;
     width: ${(props) => (props.grow ? "0%" : "100%")};
     transition: width;
@@ -76,7 +76,7 @@ const Tdr = styled.td`
 const getStyle = (slot, size) => {
   const baseStyle = {
     textTransform: "capitalize",
-    padding: "0.2em",
+    padding: "0.2rem",
     textAlign: "right",
     border: "1px solid grey",
     marginBottom: "-1px",
@@ -142,7 +142,7 @@ export default function StashSummary() {
       await wait(100);
       setRefreshState("wait");
     })();
-  }, [netWorthByStashTab]);
+  }, [netWorthByStashTab.timestamp]);
 
   useEffect(() => {
     updateInventory();
@@ -174,22 +174,15 @@ export default function StashSummary() {
   const regalAndChaosCount = regalAndChaos.reduce((p, c) => p + c.count, 0);
 
   let chaosPerEx = 0;
-  const { totalChaosNetWorth, totalExNetWorth } = Object.values(
-    netWorthByStashTab
-  ).reduce(
-    (prev, curr) => {
-      if (curr.exValue > 0) {
-        chaosPerEx = curr.chaosValue / curr.exValue;
-      }
-      prev.totalChaosNetWorth = prev.totalChaosNetWorth + curr.chaosValue;
-      prev.totalExNetWorth = prev.totalExNetWorth + curr.exValue;
-      return prev;
-    },
-    {
-      totalChaosNetWorth: 0,
-      totalExNetWorth: 0,
+  let totalChaosNetWorth = 0;
+  let totalExNetWorth = 0;
+  netWorthByStashTab?.tabs?.forEach((curr) => {
+    if (curr.exValue > 0) {
+      chaosPerEx = curr.chaosValue / curr.exValue;
     }
-  );
+    totalChaosNetWorth = totalChaosNetWorth + curr.chaosValue;
+    totalExNetWorth = totalExNetWorth + curr.exValue;
+  });
 
   const recipeInChaos = (2 * regalAndChaosCount) / 8;
   const recipeInEx = recipeInChaos / chaosPerEx;
@@ -236,7 +229,7 @@ export default function StashSummary() {
                 <td style={{ textAlign: "right" }}>{recipeInEx.toFixed(3)}</td>
                 <td style={{ textAlign: "left" }}></td>
               </tr>
-              {Object.values(netWorthByStashTab).map(
+              {netWorthByStashTab?.tabs?.map(
                 ({ tabName, chaosValue, exValue, mostExpensiveStack }) => (
                   <tr key={tabName}>
                     <td style={{ textAlign: "left" }}>{tabName}</td>
@@ -254,6 +247,17 @@ export default function StashSummary() {
               )}
             </tbody>
           </table>
+          <button
+            onClick={async () => {
+              await fetch("/api/updatestash", {
+                method: "POST",
+              });
+              await updateInventory();
+              await updateNetWorth();
+            }}
+          >
+            Update Networth
+          </button>
           <button
             onClick={() => {
               setNetWorthSnapshot({

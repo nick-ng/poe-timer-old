@@ -294,7 +294,7 @@ const netWorthCalculator = async (tabs) => {
     (tab) => !NORMAL_STASH_TABS.includes(tab.type)
   );
 
-  const result = {};
+  const result = [];
   let chaosPerEx = -1;
 
   for (const tab of specialTabs) {
@@ -351,15 +351,18 @@ const netWorthCalculator = async (tabs) => {
       chaosValue = chaosValue + each * stackSize;
     });
 
-    result[tab.i] = {
+    result.push({
       tabName: tab.n,
       chaosValue,
       exValue: chaosValue / chaosPerEx,
       mostExpensiveStack,
-    };
+    });
   }
 
-  return result;
+  return {
+    tabs: result,
+    timestamp: Date.now(),
+  };
 };
 
 module.exports = {

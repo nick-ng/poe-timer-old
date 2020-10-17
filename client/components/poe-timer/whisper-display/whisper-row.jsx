@@ -10,7 +10,7 @@ const Container = styled.tr`
   }
 
   td {
-    padding: 0.1em 0.5em;
+    padding: 0.1rem 0.5rem;
 
     &:first-child {
       padding-left: 0;

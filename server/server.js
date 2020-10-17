@@ -137,6 +137,11 @@ router.get("/api/networthbystashtab", (req, res, next) => {
   res.json(netWorthByStashTab);
 });
 
+router.post("/api/updatestash", async (req, res, next) => {
+  await Promise.all([netWorthRunner(), chaosRecipeRunner()]);
+  res.sendStatus(201);
+});
+
 app.use(router);
 
 // serve static files

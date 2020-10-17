@@ -53,8 +53,7 @@ const LoadingBar = styled.div`
     height: 100%;
     width: ${(props) => (props.grow ? "0%" : "100%")};
     transition: width;
-    transition-duration: ${(props) =>
-      props.grow ? `${UPDATE_INTERVAL}s` : "0s"};
+    transition-duration: ${(props) => (props.grow ? "120s" : "0s")};
     transition-timing-function: linear;
     left: 0;
     bottom: 0;
@@ -131,14 +130,19 @@ export default function StashSummary() {
   };
 
   const updateNetWorth = async () => {
-    setRefreshState("loading");
     const res = await fetch("/api/networthbystashtab");
     const resJson = await res.json();
 
     setNetWorthByStashTab(resJson);
-    await wait(100);
-    setRefreshState("wait");
   };
+
+  useEffect(() => {
+    (async () => {
+      setRefreshState("loading");
+      await wait(100);
+      setRefreshState("wait");
+    })();
+  }, [netWorthByStashTab]);
 
   useEffect(() => {
     updateInventory();
@@ -146,7 +150,7 @@ export default function StashSummary() {
     const intervalId = setInterval(() => {
       updateInventory();
       updateNetWorth();
-    }, UPDATE_INTERVAL * 1000);
+    }, 10 * 1000);
 
     return () => {
       clearInterval(intervalId);

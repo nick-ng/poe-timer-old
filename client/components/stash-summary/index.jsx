@@ -2,6 +2,12 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const SNAPSHOT_KEY = "POE_SNAPSHOT_KEY";
+const UPDATE_INTERVAL = 10;
+
+const wait = (ms) =>
+  new Promise((resolve, reject) => {
+    setTimeout(resolve, ms);
+  });
 
 const Container = styled.div`
   display: flex;
@@ -31,6 +37,27 @@ const Card = styled.div`
   button {
     padding: 0.5em;
     margin: 0.5em 0;
+  }
+`;
+
+const LoadingBar = styled.div`
+  height: 1em;
+  position: relative;
+  border: 1px solid grey;
+  margin: 0.5em 0 0;
+
+  &::after {
+    position: absolute;
+    content: " ";
+    background-color: white;
+    height: 100%;
+    width: ${(props) => (props.grow ? "0%" : "100%")};
+    transition: width;
+    transition-duration: ${(props) =>
+      props.grow ? `${UPDATE_INTERVAL}s` : "0s"};
+    transition-timing-function: linear;
+    left: 0;
+    bottom: 0;
   }
 `;
 
@@ -94,6 +121,7 @@ export default function StashSummary() {
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(
     JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "{}")
   );
+  const [refreshState, setRefreshState] = useState("wait");
 
   const updateInventory = async () => {
     const res = await fetch("/api/chaosrecipe");
@@ -103,10 +131,13 @@ export default function StashSummary() {
   };
 
   const updateNetWorth = async () => {
+    setRefreshState("loading");
     const res = await fetch("/api/networthbystashtab");
     const resJson = await res.json();
 
     setNetWorthByStashTab(resJson);
+    await wait(100);
+    setRefreshState("wait");
   };
 
   useEffect(() => {
@@ -115,7 +146,7 @@ export default function StashSummary() {
     const intervalId = setInterval(() => {
       updateInventory();
       updateNetWorth();
-    }, 10 * 1000);
+    }, UPDATE_INTERVAL * 1000);
 
     return () => {
       clearInterval(intervalId);
@@ -233,7 +264,7 @@ export default function StashSummary() {
             <table>
               <thead>
                 <tr>
-                  <th>{hoursSniceSnapshot.toFixed(2)} hours</th>
+                  <th>{hoursSniceSnapshot.toFixed(3)} hours</th>
                   <Thr>Chaos</Thr>
                   <Thr>Ex</Thr>
                 </tr>
@@ -260,6 +291,7 @@ export default function StashSummary() {
               </tbody>
             </table>
           )}
+          <LoadingBar grow={refreshState === "wait"} />
         </Card>
         <Card
           style={{

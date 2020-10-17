@@ -310,7 +310,7 @@ const netWorthCalculator = async (tabs) => {
         "DeliriumStash",
       ].includes(tab.type)
     ) {
-      console.log("tab.type", tab.type);
+      // console.log("tab.type", tab.type);
       continue;
     }
 

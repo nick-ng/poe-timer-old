@@ -86,10 +86,10 @@ const getEvent = (line) => {
       };
     }
   } catch (e) {
-    console.log("error when parsing event", e);
+    console.log("[parser] error when parsing event", e);
   }
 
-  //   console.log("un-interesting log", line);
+  //   console.log("[parser] un-interesting log", line);
   return {
     type: null,
     data: null,
@@ -115,7 +115,7 @@ const processLine = (line, logUnhandledLines = false) => {
       timestamp = date.valueOf();
     }
   } catch (e) {
-    console.log("error when getting timestamp.", e);
+    console.log("[parser] error when getting timestamp.", e);
     console.log(line);
   }
 
@@ -124,7 +124,7 @@ const processLine = (line, logUnhandledLines = false) => {
   );
 
   if (logUnhandledLines && type === null) {
-    console.log("unhandled line", details);
+    console.log("[parser] unhandled line", details);
   }
 
   return {

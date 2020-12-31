@@ -49,11 +49,16 @@ const fetchStashTabs = async () => {
 
   try {
     const jsonRes = await res.json();
+    if (jsonRes?.error) {
+      console.log("[stash] error when fetching tab names", jsonRes);
+      return [];
+    }
+
     const { tabs } = jsonRes;
 
     return tabs;
   } catch (e) {
-    console.log("error when fetching tab names", e);
+    console.log("[stash] error when fetching tab names", e);
     return [];
   }
 };
@@ -75,7 +80,7 @@ const fetchStashTabContents = async (tabId) => {
     const { items } = jsonRes;
     return items;
   } catch (e) {
-    console.log("error when fetching tab contents", e);
+    console.log("[stash] error when fetching tab contents", e);
     return [];
   }
 };
@@ -144,7 +149,7 @@ const getItemType = (item) => {
     return { slot: "body", count: 1 };
   }
 
-  console.log("unknown-item", item);
+  console.log("[stash] Unknown item", item);
   return { slot: "unknown", count: 0 };
 };
 
@@ -255,7 +260,7 @@ const poeNinja = async () => {
         }))
       );
     } catch (e) {
-      console.log("error when fetching from poe.ninja", e);
+      console.log("[stash] error when fetching from poe.ninja", e);
     }
   }
 
@@ -281,7 +286,7 @@ const poeNinja = async () => {
           .filter((a) => a.each > NON_CURRENCY_THRESHOLD)
       );
     } catch (e) {
-      console.log("error when fetching from poe.ninja", e);
+      console.log("[stash] error when fetching from poe.ninja", e);
     }
   }
 
@@ -296,6 +301,11 @@ const netWorthCalculator = async (tabs) => {
 
   const result = [];
   let chaosPerEx = -1;
+  const a = (await poeNinja()).filter((a) => a.typeLine === "Exalted Orb");
+  if (a.length > 0) {
+    const { each } = a.pop();
+    chaosPerEx = each;
+  }
 
   for (const tab of specialTabs) {
     if (
@@ -310,7 +320,7 @@ const netWorthCalculator = async (tabs) => {
         "DeliriumStash",
       ].includes(tab.type)
     ) {
-      // console.log("tab.type", tab.type);
+      console.log("[stash] Unhandled tab.type", tab.type);
       continue;
     }
 

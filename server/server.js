@@ -209,9 +209,9 @@ netWorthRunner();
 makeNetWorthRunner();
 
 // starting listening
-const port = process.env.PORT || 3000;
+const port = process.env.NODE_ENV === "production" ? process.env.PORT : 3000;
 server.listen(port, () =>
   console.log(`${new Date()} Website server listening on ${port}.`)
 );
 
-io.listen(33224);
+io.listen(process.env.WS_PORT);

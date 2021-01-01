@@ -87,7 +87,7 @@ const LoadingBar = styled.div`
   height: 0.3rem;
   position: relative;
   border: 1px solid grey;
-  margin: 0.5rem 0 0;
+  margin: 0 0 0.5rem;
 
   &::after {
     position: absolute;
@@ -219,6 +219,7 @@ export default function StashSummary() {
 
   const chaosSinceSnapshot =
     totalChaosNetWorthB - netWorthSnapshot.totalChaosNetWorthB;
+  const recipeSinceSnapshot = recipeInChaos - netWorthSnapshot.recipeInChaos;
   const hoursSniceSnapshot =
     (Date.now() - netWorthSnapshot.timestamp) / (1000 * 60 * 60);
 
@@ -229,6 +230,75 @@ export default function StashSummary() {
         <Card>
           <h2>Networth</h2>
           <h3>Chaos/Ex: {chaosPerEx}</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>{hoursSniceSnapshot.toFixed(3)} hours</th>
+                <Thr>With Recipe</Thr>
+                <Thr>No Recipe</Thr>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <Tdl>Difference</Tdl>
+                <Tdr>
+                  {chaosSinceSnapshot.toFixed(2)} c (
+                  {(chaosSinceSnapshot / chaosPerEx).toFixed(3)} ex)
+                </Tdr>
+                <Tdr>
+                  {(chaosSinceSnapshot - recipeSinceSnapshot).toFixed(2)} c
+                </Tdr>
+              </tr>
+              <tr>
+                <Tdl>Per Hour</Tdl>
+                <Tdr>
+                  {(chaosSinceSnapshot / hoursSniceSnapshot).toFixed(2)} c (
+                  {(
+                    chaosSinceSnapshot /
+                    chaosPerEx /
+                    hoursSniceSnapshot
+                  ).toFixed(3)}{" "}
+                  ex)
+                </Tdr>
+                <Tdr>
+                  {(
+                    (chaosSinceSnapshot - recipeSinceSnapshot) /
+                    hoursSniceSnapshot
+                  ).toFixed(2)}{" "}
+                  c
+                </Tdr>
+              </tr>
+            </tbody>
+          </table>
+          <button
+            onClick={async () => {
+              await fetch("/api/updatestash", {
+                method: "POST",
+              });
+              await updateInventory();
+              await updateNetWorth();
+            }}
+          >
+            Update Networth
+          </button>
+          <button
+            onClick={async () => {
+              const newInventory = await updateInventory();
+              const newNetWorth = await updateNetWorth();
+              const {
+                totalChaosNetWorthB: totalChaosNetWorthC,
+                recipeInChaos: recipeInChaosB,
+              } = inventorySummary(newInventory, newNetWorth);
+              setNetWorthSnapshot({
+                totalChaosNetWorthB: totalChaosNetWorthC,
+                recipeInChaos: recipeInChaosB,
+                timestamp: Date.now(),
+              });
+            }}
+          >
+            Snapshot Networth
+          </button>
+          <LoadingBar grow={refreshState === "wait"} />
           <table>
             <thead>
               <tr>
@@ -268,71 +338,14 @@ export default function StashSummary() {
                     <td style={{ textAlign: "left" }}>
                       {mostExpensiveStack.stackSize}{" "}
                       {mostExpensiveStack.typeLine} ={" "}
-                      {mostExpensiveStack.value.toFixed(2)} c
+                      {mostExpensiveStack.value.toFixed(2)} c (
+                      {(mostExpensiveStack.value / chaosPerEx).toFixed(3)} ex)
                     </td>
                   </tr>
                 )
               )}
             </tbody>
           </table>
-          <button
-            onClick={async () => {
-              await fetch("/api/updatestash", {
-                method: "POST",
-              });
-              await updateInventory();
-              await updateNetWorth();
-            }}
-          >
-            Update Networth
-          </button>
-          <button
-            onClick={async () => {
-              const newInventory = await updateInventory();
-              const newNetWorth = await updateNetWorth();
-              const {
-                totalChaosNetWorthB: totalChaosNetWorthC,
-              } = inventorySummary(newInventory, newNetWorth);
-              setNetWorthSnapshot({
-                totalChaosNetWorthB: totalChaosNetWorthC,
-                timestamp: Date.now(),
-              });
-            }}
-          >
-            Snapshot Networth
-          </button>
-          {hoursSniceSnapshot > 0 && (
-            <table>
-              <thead>
-                <tr>
-                  <th>{hoursSniceSnapshot.toFixed(3)} hours</th>
-                  <Thr>Chaos</Thr>
-                  <Thr>Ex</Thr>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <Tdl>Diff</Tdl>
-                  <Tdr>{chaosSinceSnapshot.toFixed(2)}</Tdr>
-                  <Tdr>{(chaosSinceSnapshot / chaosPerEx).toFixed(3)}</Tdr>
-                </tr>
-                <tr>
-                  <Tdl>per Hr</Tdl>
-                  <Tdr>
-                    {(chaosSinceSnapshot / hoursSniceSnapshot).toFixed(2)}
-                  </Tdr>
-                  <Tdr>
-                    {(
-                      chaosSinceSnapshot /
-                      chaosPerEx /
-                      hoursSniceSnapshot
-                    ).toFixed(3)}
-                  </Tdr>
-                </tr>
-              </tbody>
-            </table>
-          )}
-          <LoadingBar grow={refreshState === "wait"} />
         </Card>
         <Card
           style={{

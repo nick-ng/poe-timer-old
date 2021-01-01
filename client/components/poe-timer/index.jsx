@@ -114,7 +114,7 @@ export default function PoeTimer() {
 
   useEffect(() => {
     // register socket
-    const socket = io("http://localhost:3001");
+    const socket = io("http://localhost:33223");
 
     socket.on("connect", () => {
       console.log("connected");

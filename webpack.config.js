@@ -1,8 +1,25 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path");
 
 const siteTitle = "PoE Helper";
 
 module.exports = {
+  devServer: {
+    contentBase: path.join(__dirname, "dist"),
+    compress: true,
+    port: 33224,
+    proxy: [
+      {
+        context: ["/api", ".json"],
+        target: "http://localhost:3000",
+      },
+      {
+        context: ["/ws"],
+        target: `ws://localhost:${process.env.WS_PORT}`,
+        ws: true,
+      },
+    ],
+  },
   mode: process.env.NODE_ENV || "production",
   devtool: "source-map",
   entry: "./client/entry.jsx",
@@ -40,6 +57,7 @@ module.exports = {
               "@babel/plugin-syntax-dynamic-import",
               "@babel/plugin-proposal-class-properties",
               "@babel/transform-runtime",
+              "@babel/plugin-proposal-optional-chaining",
             ],
           },
         },
@@ -49,8 +67,8 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       title: siteTitle,
-      favicon: `./client/static/favicon.ico`,
-      template: "./client/static/index.html",
+      favicon: `${__dirname}/favicon.ico`,
+      template: "./index.html",
       inject: "true",
     }),
   ],

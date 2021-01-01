@@ -1,10 +1,10 @@
 import React from "react";
-import styled from "styled-components";
 import { BrowserRouter as Router, Switch, Route as R } from "react-router-dom";
 
 import css from "./styles.css";
 
 import Nav from "./components/nav";
+import Home from "./components/home";
 import LogCombiner from "./components/poe-timer/log-combiner";
 import PoeTimer from "./components/poe-timer";
 import StashSummary from "./components/stash-summary";
@@ -31,7 +31,7 @@ export default function App() {
               <PoeTimer />
             </R>
             <R path="/">
-              <div>Hello</div>
+              <Home />
             </R>
           </Switch>
         </div>

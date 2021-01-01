@@ -1,56 +1,13 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
+import PoeRacingWidget from "../poe-racing-widget";
+import { inventorySummary } from "./utils";
+import { wait } from "../../utils";
+
 const SNAPSHOT_KEY = "POE_SNAPSHOT_KEY";
+const PLAYER_NAME = "POE_PLAYER_NAME";
 const UPDATE_INTERVAL = 10;
-
-const wait = (ms) =>
-  new Promise((resolve, reject) => {
-    setTimeout(resolve, ms);
-  });
-
-const inventorySummary = (inventory, netWorthByStashTab) => {
-  const regalAndChaos = [];
-  let chaosItems = 0;
-  const { chaos, regal } = inventory;
-  Object.keys(chaos).forEach((slot) => {
-    const count = chaos[slot] + regal[slot];
-    regalAndChaos.push({ slot, count, chaosCount: chaos[slot] });
-    chaosItems = chaosItems + chaos[slot];
-  });
-
-  const lowestSlot = Math.min(...regalAndChaos.map((a) => a.count));
-  const regalAndChaosCount = regalAndChaos.reduce((p, c) => p + c.count, 0);
-
-  let chaosPerEx = 0;
-  let totalChaosNetWorth = 0;
-  let totalExNetWorth = 0;
-  netWorthByStashTab?.tabs?.forEach((curr) => {
-    if (curr.exValue > 0) {
-      chaosPerEx = curr.chaosValue / curr.exValue;
-    }
-    totalChaosNetWorth = totalChaosNetWorth + curr.chaosValue;
-    totalExNetWorth = totalExNetWorth + curr.exValue;
-  });
-
-  const recipeInChaos = (2 * regalAndChaosCount) / 8;
-  const recipeInEx = recipeInChaos / chaosPerEx;
-  const totalChaosNetWorthB = totalChaosNetWorth + recipeInChaos;
-  const totalExNetWorthB = totalExNetWorth + recipeInEx;
-
-  return {
-    chaosPerEx,
-    chaosItems,
-    lowestSlot,
-    recipeInChaos,
-    regalAndChaos,
-    totalChaosNetWorth,
-    totalChaosNetWorthB,
-    recipeInEx,
-    totalExNetWorth,
-    totalExNetWorthB,
-  };
-};
 
 const Container = styled.div`
   display: flex;
@@ -164,6 +121,10 @@ export default function StashSummary() {
     JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "{}")
   );
   const [refreshState, setRefreshState] = useState("wait");
+  const [league, setLeague] = useState(null);
+  const [character, setCharacter] = useState(
+    localStorage.getItem(PLAYER_NAME) || null
+  );
 
   const updateInventory = async () => {
     const res = await fetch("/api/chaosrecipe");
@@ -197,6 +158,15 @@ export default function StashSummary() {
       updateNetWorth();
     }, UPDATE_INTERVAL * 1000);
 
+    setCharacter(localStorage.getItem(PLAYER_NAME) || null);
+
+    (async () => {
+      const res = await fetch("/api/env");
+      const { league: fetchedLeague } = await res.json();
+
+      setLeague(fetchedLeague);
+    })();
+
     return () => {
       clearInterval(intervalId);
     };
@@ -227,6 +197,10 @@ export default function StashSummary() {
     <Container>
       <h1>Stash Summary</h1>
       <Information>
+        <Card>
+          <h2>poe-racing.com Tracker</h2>
+          <PoeRacingWidget league={league} character={character} size={3} />
+        </Card>
         <Card>
           <h2>Networth</h2>
           <h3>Chaos/Ex: {chaosPerEx}</h3>
@@ -349,7 +323,7 @@ export default function StashSummary() {
         </Card>
         <Card
           style={{
-            textAlign: "right",
+            textAlign: "center",
           }}
         >
           <h2
@@ -364,6 +338,7 @@ export default function StashSummary() {
             style={{
               display: "flex",
               flexDirection: "column",
+              marginBottom: "0.5em",
             }}
           >
             {regalAndChaos
@@ -375,6 +350,7 @@ export default function StashSummary() {
                 >{`${slot}: ${count} (${chaosCount})`}</div>
               ))}
           </div>
+          <PoeRacingWidget league={league} character={character} size={2} />
         </Card>
       </Information>
     </Container>

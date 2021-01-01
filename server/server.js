@@ -142,6 +142,12 @@ router.post("/api/updatestash", async (req, res, next) => {
   res.sendStatus(201);
 });
 
+router.get("/api/env", (req, res, next) => {
+  res.json({
+    league: process.env.LEAGUE,
+  });
+});
+
 app.use(router);
 
 // serve static files

@@ -8,6 +8,9 @@ import css from "./styles.css";
 const Nav = () => (
   <div className={css.navContainer}>
     <Header />
+    <NavLink icon="fa-home" to="/" exact>
+      Home
+    </NavLink>
     <NavLink icon="fa-clock-o" to="/timer">
       Timer
     </NavLink>

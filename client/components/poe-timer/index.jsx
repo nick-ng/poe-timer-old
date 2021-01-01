@@ -15,6 +15,7 @@ import { LogTextArea } from "./log-combiner";
 import SplitsTable from "./splits-table";
 import WhisperDisplay from "./whisper-display";
 import WhisperVoice from "./whisper-voice";
+import PoeRacingWidget from "../poe-racing-widget";
 
 const SPLIT_IGNORE_LIST = "POE_SPLIT_IGNORE_LIST";
 const PLAYER_NAME = "POE_PLAYER_NAME";
@@ -86,8 +87,9 @@ export default function PoeTimer() {
   const [bestZoneSplits, setBestZoneSplits] = useState(
     JSON.parse(localStorage.getItem(BEST_ZONE_SPLITS) || "{}")
   );
-  const [playerName, setPlayerName] = useState(
-    localStorage.getItem(PLAYER_NAME) || ""
+  const [league, setLeague] = useState(null);
+  const [character, setCharacter] = useState(
+    localStorage.getItem(PLAYER_NAME) || null
   );
   const [playerLevel, setPlayerLevel] = useState(1);
   const [levelThreshold, setLevelThreshold] = useState(
@@ -113,6 +115,14 @@ export default function PoeTimer() {
   };
 
   useEffect(() => {
+    setCharacter(localStorage.getItem(PLAYER_NAME) || null);
+
+    (async () => {
+      const res = await fetch("/api/env");
+      const { league: fetchedLeague } = await res.json();
+
+      setLeague(fetchedLeague);
+    })();
     // register socket
     const socket = io("http://localhost:33223");
 
@@ -262,7 +272,7 @@ export default function PoeTimer() {
     }
     if (newestEvent.type === "level") {
       const { details } = newestEvent;
-      const rightPlayer = !playerName || playerName === details.player;
+      const rightPlayer = !character || character === details.player;
       if (rightPlayer) {
         setPlayerLevel(details.level);
       }
@@ -295,8 +305,8 @@ export default function PoeTimer() {
     localStorage.setItem(START_TIMESTAMP, startTimestamp);
   }, [startTimestamp]);
   useEffect(() => {
-    localStorage.setItem(PLAYER_NAME, playerName);
-  }, [playerName]);
+    localStorage.setItem(PLAYER_NAME, character);
+  }, [character]);
   useEffect(() => {
     localStorage.setItem(LEVEL_THRESHOLD, levelThreshold);
   }, [levelThreshold]);
@@ -391,9 +401,9 @@ export default function PoeTimer() {
             {/* <label>
               Player:{" "}
               <input
-                value={playerName}
+                value={character}
                 onChange={(e) => {
-                  setPlayerName(e.target.value);
+                  setCharacter(e.target.value);
                 }}
               />
             </label> */}
@@ -430,11 +440,7 @@ export default function PoeTimer() {
             </select>
           </ControlsContainer>
         </div>
-        <iframe
-          src="https://tracker.poe-racing.com/?event=SSF Heist&character=Pux_SixtyThree&size=2"
-          width="200px"
-          height="120px"
-        />
+        <PoeRacingWidget league={league} character={character} size={2} />
         <div>
           {/* <LogTextArea
             value={

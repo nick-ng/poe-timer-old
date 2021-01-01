@@ -172,7 +172,8 @@ app.use((req, res) => {
 const stashTabCheckPeriod = 2 * 60 * 1000;
 async function stashTabFetchRunner() {
   if (!credentials) {
-    process.env !== "production" && console.log("Waiting for credentials");
+    process.env.NODE_ENV !== "production" &&
+      console.log("Waiting for credentials");
     return;
   }
 
@@ -203,7 +204,9 @@ const makeStashTabFetchRunner = () => {
       await stashTabFetchRunner();
       makeStashTabFetchRunner();
     },
-    credentials ? stashTabCheckPeriod : 3000
+    credentials && stashTabs.lastUpdated > 0 && inventory.lastUpdated > 0
+      ? stashTabCheckPeriod
+      : 3000
   );
 };
 stashTabFetchRunner();

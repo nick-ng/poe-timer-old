@@ -4,12 +4,12 @@ Timer and stash tab stuff.
 
 ## Instructions
 
-1. Clone repo into same drive as Path of Exile but not in Program Files (x86) (once)
-2. Run `make_hardlinks.bat` if you want to use the timer (once)
-3. Run `poe_helper.bat`
-4. Navigate your web browser to http://localhost:33224
-5. Enter your character (optional), league, account and POESESSID and click `Save`.
-   - Character name is only necessary if you want to use the poe-racing.com tracker
+1. Install node.js LTS or Current https://nodejs.org
+2. Clone repo into same drive as Path of Exile but not in Program Files (x86) (once)
+3. Run `npm_install.bat` (once)
+4. Run `make_hardlinks.bat` if you want to use the timer (once). You may have to edit the file (right click -> Edit) if you installed Path of Exile to a different directory.
+5. Run `poe_helper.bat`
+6. Navigate your web browser to http://localhost:33224
 
 ### Getting POESESSID
 

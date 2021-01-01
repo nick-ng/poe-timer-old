@@ -325,7 +325,8 @@ const netWorthCalculator = async (tabs, credentials = {}) => {
         "DeliriumStash",
       ].includes(tab.type)
     ) {
-      console.log("[stash] Unhandled tab.type", tab.type);
+      process.env.NODE_ENV !== "production" &&
+        console.log("[stash] Unhandled tab.type", tab.type);
       continue;
     }
 

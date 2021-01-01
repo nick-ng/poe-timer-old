@@ -8,6 +8,7 @@ import Home from "./components/home";
 import LogCombiner from "./components/poe-timer/log-combiner";
 import PoeTimer from "./components/poe-timer";
 import StashSummary from "./components/stash-summary";
+import Settings from "./components/settings";
 
 import { updateCredentials } from "./utils";
 
@@ -35,6 +36,9 @@ export default function App() {
             </R>
             <R path="/timer">
               <PoeTimer />
+            </R>
+            <R path="/settings">
+              <Settings />
             </R>
             <R path="/">
               <Home />

@@ -20,6 +20,9 @@ const Nav = () => (
     <NavLink icon="fa-plus" to="/stashsummary">
       Stash Summary
     </NavLink>
+    <NavLink icon="fa-cog" to="/settings">
+      Settings
+    </NavLink>
   </div>
 );
 

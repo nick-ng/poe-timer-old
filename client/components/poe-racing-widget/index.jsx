@@ -23,6 +23,6 @@ export default function PoeRacingWidget({ league, character, size }) {
       height={SIZES[size]?.height || "220px"}
     />
   ) : (
-    <p>Loading...</p>
+    <div />
   );
 }

@@ -35,7 +35,8 @@ const poeNinjaData = {
   data: [],
 };
 
-const fetchStashTabs = async () => {
+const fetchStashTabs = async (credentials = {}) => {
+  const { account, league, poesessid } = credentials;
   const res = await fetch(
     `https://www.pathofexile.com/character-window/get-stash-items?accountName=${process.env.ACCOUNT_NAME}&realm=pc&league=${process.env.LEAGUE}&tabs=1`,
     {
@@ -63,7 +64,8 @@ const fetchStashTabs = async () => {
   }
 };
 
-const fetchStashTabContents = async (tabId) => {
+const fetchStashTabContents = async (tabId, credentials = {}) => {
+  const { account, league, poesessid } = credentials;
   const res = await fetch(
     `https://www.pathofexile.com/character-window/get-stash-items?accountName=${process.env.ACCOUNT_NAME}&realm=pc&league=${process.env.LEAGUE}&tabIndex=${tabId}`,
     {
@@ -85,7 +87,7 @@ const fetchStashTabContents = async (tabId) => {
   }
 };
 
-const getItemType = (item) => {
+const getItemType = (item, credentials = {}) => {
   const {
     boot,
     glove,
@@ -153,7 +155,7 @@ const getItemType = (item) => {
   return { slot: "unknown", count: 0 };
 };
 
-const recipeInfo = (item) => {
+const recipeInfo = (item, credentials = {}) => {
   if (item.identified) {
     return null;
   }
@@ -178,7 +180,7 @@ const recipeInfo = (item) => {
   };
 };
 
-const chaosRecipe = async (tabs = []) => {
+const chaosRecipe = async (tabs = [], credentials = {}) => {
   const chaosRecipeTabs = tabs.filter((tab) => tab.n.includes("chaos_"));
 
   const inventory = {
@@ -205,7 +207,7 @@ const chaosRecipe = async (tabs = []) => {
   };
 
   const res = await Promise.all(
-    chaosRecipeTabs.map((tab) => fetchStashTabContents(tab.i))
+    chaosRecipeTabs.map((tab) => fetchStashTabContents(tab.i, credentials))
   );
 
   res.forEach((contents) => {
@@ -293,7 +295,7 @@ const poeNinja = async () => {
   return poeNinjaData.data;
 };
 
-const netWorthCalculator = async (tabs) => {
+const netWorthCalculator = async (tabs, credentials = {}) => {
   //CurrencyStash;
   const specialTabs = tabs.filter(
     (tab) => !NORMAL_STASH_TABS.includes(tab.type)
@@ -325,7 +327,7 @@ const netWorthCalculator = async (tabs) => {
     }
 
     let mostExpensiveStack = { value: -1 };
-    const stashTabContents = await fetchStashTabContents(tab.i);
+    const stashTabContents = await fetchStashTabContents(tab.i, credentials);
     const priceData = await poeNinja();
 
     let chaosValue = 0;

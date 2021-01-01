@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Switch, Route as R } from "react-router-dom";
 
 import css from "./styles.css";
@@ -9,7 +9,13 @@ import LogCombiner from "./components/poe-timer/log-combiner";
 import PoeTimer from "./components/poe-timer";
 import StashSummary from "./components/stash-summary";
 
+import { updateCredentials } from "./utils";
+
 export default function App() {
+  useEffect(() => {
+    updateCredentials();
+  }, []);
+
   return (
     <Router
       style={{

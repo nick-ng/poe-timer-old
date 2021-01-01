@@ -29,6 +29,8 @@ const io = socketio();
 
 let stashTabs = { tabs: [], lastUpdated: 0 };
 
+let credentials = null;
+
 let netWorthByStashTab = {};
 
 let inventory = {
@@ -148,6 +150,11 @@ router.get("/api/env", (req, res, next) => {
   });
 });
 
+router.post("/api/credentials", (req, res, next) => {
+  credentials = req.body;
+  res.sendStatus(202);
+});
+
 app.use(router);
 
 // serve static files
@@ -161,58 +168,36 @@ app.use((req, res) => {
 
 const stashTabCheckPeriod = 2 * 60 * 1000;
 const stashTabFetchRunner = async () => {
-  const tabs = await fetchStashTabs();
+  if (!credentials) {
+    process.env !== "production" && console.log("Waiting for credentials");
+    return;
+  }
+
+  const tabs = await fetchStashTabs(credentials);
   stashTabs = {
     tabs,
     lastUpdated: Date.now(),
   };
+
+  inventory = {
+    ...(await chaosRecipe(tabs, credentials)),
+    lastUpdated: Date.now(),
+  };
+
+  netWorthByStashTab = await netWorthCalculator(tabs, credentials);
 };
 
 const makeStashTabFetchRunner = () => {
-  setTimeout(async () => {
-    await stashTabFetchRunner();
-    makeStashTabFetchRunner();
-  }, stashTabCheckPeriod);
+  setTimeout(
+    async () => {
+      await stashTabFetchRunner();
+      makeStashTabFetchRunner();
+    },
+    credentials ? stashTabCheckPeriod : 3000
+  );
 };
 stashTabFetchRunner();
 makeStashTabFetchRunner();
-
-const chaosRecipeRunner = async () => {
-  while (stashTabs.tabs.length === 0) {
-    await wait(100);
-  }
-
-  inventory = {
-    ...(await chaosRecipe(stashTabs.tabs)),
-    lastUpdated: Date.now(),
-  };
-};
-
-const makeChaosRecipeTimeout = () => {
-  setTimeout(async () => {
-    await chaosRecipeRunner();
-    makeChaosRecipeTimeout();
-  }, stashTabCheckPeriod);
-};
-chaosRecipeRunner();
-makeChaosRecipeTimeout();
-
-const netWorthRunner = async () => {
-  while (stashTabs.tabs.length === 0) {
-    await wait(100);
-  }
-  netWorthByStashTab = await netWorthCalculator(stashTabs.tabs);
-};
-
-const makeNetWorthRunner = () => {
-  setTimeout(async () => {
-    await netWorthRunner();
-    makeNetWorthRunner();
-  }, stashTabCheckPeriod);
-};
-
-netWorthRunner();
-makeNetWorthRunner();
 
 // starting listening
 const port = process.env.NODE_ENV === "production" ? process.env.PORT : 3000;

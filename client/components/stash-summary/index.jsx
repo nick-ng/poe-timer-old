@@ -3,10 +3,9 @@ import styled from "styled-components";
 
 import PoeRacingWidget from "../poe-racing-widget";
 import { inventorySummary } from "./utils";
-import { wait } from "../../utils";
+import { wait, updateCredentials, PLAYER_NAME, LEAGUE } from "../../utils";
 
 const SNAPSHOT_KEY = "POE_SNAPSHOT_KEY";
-const PLAYER_NAME = "POE_PLAYER_NAME";
 const UPDATE_INTERVAL = 10;
 
 const Container = styled.div`
@@ -121,7 +120,7 @@ export default function StashSummary() {
     JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "{}")
   );
   const [refreshState, setRefreshState] = useState("wait");
-  const [league, setLeague] = useState(null);
+  const [league, setLeague] = useState(localStorage.getItem(LEAGUE) || null);
   const [character, setCharacter] = useState(
     localStorage.getItem(PLAYER_NAME) || null
   );
@@ -151,21 +150,17 @@ export default function StashSummary() {
   }, [netWorthByStashTab.timestamp]);
 
   useEffect(() => {
+    updateCredentials();
     updateInventory();
     updateNetWorth();
     const intervalId = setInterval(() => {
+      updateCredentials();
       updateInventory();
       updateNetWorth();
     }, UPDATE_INTERVAL * 1000);
 
     setCharacter(localStorage.getItem(PLAYER_NAME) || null);
-
-    (async () => {
-      const res = await fetch("/api/env");
-      const { league: fetchedLeague } = await res.json();
-
-      setLeague(fetchedLeague);
-    })();
+    setLeague(localStorage.getItem(LEAGUE) || null);
 
     return () => {
       clearInterval(intervalId);

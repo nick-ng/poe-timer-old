@@ -5,7 +5,7 @@ Timer and stash tab stuff.
 ## Instructions
 
 1. Clone repo into same drive as Path of Exile but not in Program Files (x86) (once)
-2. Run `make_hardlinks.bat` (once)
+2. Run `make_hardlinks.bat` if you want to use the timer (once)
 3. Run `poe_helper.bat`
 4. Navigate your web browser to http://localhost:33224
 5. Enter your character (optional), league, account and POESESSID and click `Save`.

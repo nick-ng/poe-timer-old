@@ -35,15 +35,10 @@ export default function Home() {
   );
 
   useEffect(() => {
-    (async () => {
-      if (league && account && poesessid) {
-        await fetch("/api/credentials");
-      }
-      const res = await fetch("/api/env");
-      const { league: fetchedLeague } = await res.json();
-
-      setLeague(fetchedLeague);
-    })();
+    setCharacter(localStorage.getItem(PLAYER_NAME) || null);
+    setLeague(localStorage.getItem(LEAGUE) || null);
+    setAccount(localStorage.getItem(ACCOUNT) || null);
+    setPoesessid(localStorage.getItem(POESESSID) || null);
   }, []);
 
   useEffect(() => {
@@ -60,7 +55,7 @@ export default function Home() {
           localStorage.setItem(LEAGUE, league);
           localStorage.setItem(ACCOUNT, account);
           localStorage.setItem(POESESSID, poesessid);
-          updateCredentials();
+          updateCredentials(true);
         }}
       >
         <table>
@@ -113,6 +108,16 @@ export default function Home() {
           </tbody>
         </table>
         <button>Save</button>
+        <button
+          type="button"
+          onClick={() => {
+            setLeague(localStorage.getItem(LEAGUE) || null);
+            setAccount(localStorage.getItem(ACCOUNT) || null);
+            setPoesessid(localStorage.getItem(POESESSID) || null);
+          }}
+        >
+          Cancel
+        </button>
       </form>
     </Container>
   );

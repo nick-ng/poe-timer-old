@@ -8,7 +8,7 @@ export const wait = (ms) =>
     setTimeout(resolve, ms);
   });
 
-export const updateCredentials = () => {
+export const updateCredentials = (forceUpdate = false) => {
   const league = localStorage.getItem(LEAGUE);
   const account = localStorage.getItem(ACCOUNT);
   const poesessid = localStorage.getItem(POESESSID);
@@ -23,6 +23,7 @@ export const updateCredentials = () => {
         league,
         account,
         poesessid,
+        forceUpdate,
       }),
     });
   }

@@ -152,6 +152,9 @@ router.get("/api/env", (req, res, next) => {
 
 router.post("/api/credentials", (req, res, next) => {
   credentials = req.body;
+  if (req.body.forceUpdate) {
+    stashTabFetchRunner();
+  }
   res.sendStatus(202);
 });
 
@@ -167,25 +170,32 @@ app.use((req, res) => {
 });
 
 const stashTabCheckPeriod = 2 * 60 * 1000;
-const stashTabFetchRunner = async () => {
+async function stashTabFetchRunner() {
   if (!credentials) {
     process.env !== "production" && console.log("Waiting for credentials");
     return;
   }
 
-  const tabs = await fetchStashTabs(credentials);
-  stashTabs = {
-    tabs,
-    lastUpdated: Date.now(),
-  };
+  try {
+    const tabs = await fetchStashTabs(credentials);
+    stashTabs = {
+      tabs,
+      lastUpdated: Date.now(),
+    };
 
-  inventory = {
-    ...(await chaosRecipe(tabs, credentials)),
-    lastUpdated: Date.now(),
-  };
+    inventory = {
+      ...(await chaosRecipe(tabs, credentials)),
+      lastUpdated: Date.now(),
+    };
 
-  netWorthByStashTab = await netWorthCalculator(tabs, credentials);
-};
+    netWorthByStashTab = await netWorthCalculator(tabs, credentials);
+  } catch (e) {
+    console.log(
+      "Something went wrong. Check your league, account and poesessid.",
+      e
+    );
+  }
+}
 
 const makeStashTabFetchRunner = () => {
   setTimeout(
@@ -200,9 +210,10 @@ stashTabFetchRunner();
 makeStashTabFetchRunner();
 
 // starting listening
-const port = process.env.NODE_ENV === "production" ? process.env.PORT : 3000;
+const port =
+  process.env.NODE_ENV === "production" ? process.env.PORT || 33224 : 33225;
 server.listen(port, () =>
   console.log(`${new Date()} Website server listening on ${port}.`)
 );
 
-io.listen(process.env.WS_PORT);
+io.listen(process.env.WS_PORT || 33223);

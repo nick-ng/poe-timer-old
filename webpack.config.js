@@ -11,11 +11,11 @@ module.exports = {
     proxy: [
       {
         context: ["/api", ".json"],
-        target: "http://localhost:3000",
+        target: "http://localhost:33225",
       },
       {
         context: ["/ws"],
-        target: `ws://localhost:${process.env.WS_PORT}`,
+        target: `ws://localhost:${process.env.WS_PORT || 33223}`,
         ws: true,
       },
     ],

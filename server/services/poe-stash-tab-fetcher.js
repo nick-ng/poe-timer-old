@@ -38,11 +38,11 @@ const poeNinjaData = {
 const fetchStashTabs = async (credentials = {}) => {
   const { account, league, poesessid } = credentials;
   const res = await fetch(
-    `https://www.pathofexile.com/character-window/get-stash-items?accountName=${process.env.ACCOUNT_NAME}&realm=pc&league=${process.env.LEAGUE}&tabs=1`,
+    `https://www.pathofexile.com/character-window/get-stash-items?accountName=${account}&realm=pc&league=${league}&tabs=1`,
     {
       credentials: "include",
       headers: {
-        cookie: `POESESSID=${process.env.POESESSID}`,
+        cookie: `POESESSID=${poesessid}`,
       },
       method: "GET",
     }
@@ -67,11 +67,11 @@ const fetchStashTabs = async (credentials = {}) => {
 const fetchStashTabContents = async (tabId, credentials = {}) => {
   const { account, league, poesessid } = credentials;
   const res = await fetch(
-    `https://www.pathofexile.com/character-window/get-stash-items?accountName=${process.env.ACCOUNT_NAME}&realm=pc&league=${process.env.LEAGUE}&tabIndex=${tabId}`,
+    `https://www.pathofexile.com/character-window/get-stash-items?accountName=${account}&realm=pc&league=${league}&tabIndex=${tabId}`,
     {
       credentials: "include",
       headers: {
-        cookie: `POESESSID=${process.env.POESESSID}`,
+        cookie: `POESESSID=${poesessid}`,
       },
       method: "GET",
     }
@@ -80,14 +80,14 @@ const fetchStashTabContents = async (tabId, credentials = {}) => {
   try {
     const jsonRes = await res.json();
     const { items } = jsonRes;
-    return items;
+    return items || [];
   } catch (e) {
     console.log("[stash] error when fetching tab contents", e);
     return [];
   }
 };
 
-const getItemType = (item, credentials = {}) => {
+const getItemType = (item) => {
   const {
     boot,
     glove,
@@ -155,7 +155,7 @@ const getItemType = (item, credentials = {}) => {
   return { slot: "unknown", count: 0 };
 };
 
-const recipeInfo = (item, credentials = {}) => {
+const recipeInfo = (item) => {
   if (item.identified) {
     return null;
   }
@@ -232,7 +232,8 @@ const chaosRecipe = async (tabs = [], credentials = {}) => {
 
 const poeNinjaRefreshAge = 2 * 60 * 60 * 1000;
 
-const poeNinja = async () => {
+const poeNinja = async (credentials = {}) => {
+  const { league } = credentials;
   // Check that the data isn't too old
   if (Date.now() - poeNinjaData.timestamp < poeNinjaRefreshAge) {
     return poeNinjaData.data;
@@ -246,7 +247,7 @@ const poeNinja = async () => {
     const requestType = "currency";
     try {
       const res = await fetch(
-        `https://poe.ninja/api/data/${requestType}overview?league=${process.env.LEAGUE}&type=${type}&language=en`,
+        `https://poe.ninja/api/data/${requestType}overview?league=${league}&type=${type}&language=en`,
         {
           method: "GET",
           mode: "cors",
@@ -270,7 +271,7 @@ const poeNinja = async () => {
     const requestType = "item";
     try {
       const res = await fetch(
-        `https://poe.ninja/api/data/${requestType}overview?league=${process.env.LEAGUE}&type=${type}&language=en`,
+        `https://poe.ninja/api/data/${requestType}overview?league=${league}&type=${type}&language=en`,
         {
           method: "GET",
           mode: "cors",
@@ -303,7 +304,9 @@ const netWorthCalculator = async (tabs, credentials = {}) => {
 
   const result = [];
   let chaosPerEx = -1;
-  const a = (await poeNinja()).filter((a) => a.typeLine === "Exalted Orb");
+  const a = (await poeNinja(credentials)).filter(
+    (a) => a.typeLine === "Exalted Orb"
+  );
   if (a.length > 0) {
     const { each } = a.pop();
     chaosPerEx = each;
@@ -328,7 +331,7 @@ const netWorthCalculator = async (tabs, credentials = {}) => {
 
     let mostExpensiveStack = { value: -1 };
     const stashTabContents = await fetchStashTabContents(tab.i, credentials);
-    const priceData = await poeNinja();
+    const priceData = await poeNinja(credentials);
 
     let chaosValue = 0;
     stashTabContents.forEach((item) => {

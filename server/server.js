@@ -5,8 +5,8 @@ const compression = require("compression");
 const path = require("path");
 const socketio = require("socket.io");
 const Tail = require("always-tail2");
-const moment = require("moment");
 const fs = require("fs");
+const os = require("os");
 
 const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
@@ -215,8 +215,12 @@ makeStashTabFetchRunner();
 // starting listening
 const port =
   process.env.NODE_ENV === "production" ? process.env.PORT || 33224 : 33225;
-server.listen(port, () =>
-  console.log(`${new Date()} Website server listening on ${port}.`)
-);
+server.listen(port, () => {
+  console.log(`${new Date()} Website server listening on ${port}.`);
+  console.log(
+    "os.networkInterfaces()",
+    Object.values(os.networkInterfaces()).map((a) => a.map((b) => b.address))
+  );
+});
 
 io.listen(process.env.WS_PORT || 33223);

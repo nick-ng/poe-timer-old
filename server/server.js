@@ -12,11 +12,6 @@ const { applyMiddlewares } = require("./middleware");
 const { applyRouters } = require("./router");
 const poeLogParser = require("./services/poe-log-parser");
 const { processLine } = require("./services/poe-log-parser");
-const {
-  fetchStashTabs,
-  chaosRecipe,
-  netWorthCalculator,
-} = require("./services/poe-stash-tab-fetcher");
 
 const wait = (ms) =>
   new Promise((resolve, reject) => {
@@ -26,18 +21,6 @@ const wait = (ms) =>
 const app = express();
 const server = http.createServer(app);
 const io = socketio();
-
-let stashTabs = { tabs: [], lastUpdated: 0 };
-
-let credentials = null;
-
-let netWorthByStashTab = {};
-
-let inventory = {
-  chaos: { weapon: 0 },
-  regal: { weapon: 0 },
-  lastUpdated: 0,
-};
 
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -131,19 +114,6 @@ router.get("/clienttxt", (req, res, next) => {
   }
 });
 
-router.get("/api/chaosrecipe", (req, res, next) => {
-  res.json(inventory);
-});
-
-router.get("/api/networthbystashtab", (req, res, next) => {
-  res.json(netWorthByStashTab);
-});
-
-router.post("/api/updatestash", async (req, res, next) => {
-  await Promise.all([netWorthRunner(), chaosRecipeRunner()]);
-  res.sendStatus(201);
-});
-
 router.get("/api/env", (req, res, next) => {
   res.json({
     league: process.env.LEAGUE,
@@ -152,9 +122,6 @@ router.get("/api/env", (req, res, next) => {
 
 router.post("/api/credentials", (req, res, next) => {
   credentials = req.body;
-  if (req.body.forceUpdate) {
-    stashTabFetchRunner();
-  }
   res.sendStatus(202);
 });
 
@@ -168,49 +135,6 @@ app.use(express.static("dist"));
 app.use((req, res) => {
   res.sendFile(path.resolve(__dirname, "../dist/index.html"));
 });
-
-const stashTabCheckPeriod = 2 * 60 * 1000;
-async function stashTabFetchRunner() {
-  if (!credentials) {
-    process.env.NODE_ENV !== "production" &&
-      console.log("Waiting for credentials");
-    return;
-  }
-
-  try {
-    const tabs = await fetchStashTabs(credentials);
-    stashTabs = {
-      tabs,
-      lastUpdated: Date.now(),
-    };
-
-    inventory = {
-      ...(await chaosRecipe(tabs, credentials)),
-      lastUpdated: Date.now(),
-    };
-
-    netWorthByStashTab = await netWorthCalculator(tabs, credentials);
-  } catch (e) {
-    console.log(
-      "Something went wrong. Check your league, account and poesessid.",
-      e
-    );
-  }
-}
-
-const makeStashTabFetchRunner = () => {
-  setTimeout(
-    async () => {
-      await stashTabFetchRunner();
-      makeStashTabFetchRunner();
-    },
-    credentials && stashTabs.lastUpdated > 0 && inventory.lastUpdated > 0
-      ? stashTabCheckPeriod
-      : 3000
-  );
-};
-stashTabFetchRunner();
-makeStashTabFetchRunner();
 
 // starting listening
 const port =
